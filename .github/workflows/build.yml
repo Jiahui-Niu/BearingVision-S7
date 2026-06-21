@@ -32,7 +32,7 @@ jobs:
           Copy-Item $log4net.FullName "$libPath\log4Net.dll"
           Write-Host "log4net: $($log4net.FullName)"
 
-          nuget install HslCommunication -Version 11.8.1.0 -OutputDirectory "$env:RUNNER_TEMP\nuget" -NonInteractive
+          nuget install HslCommunication -Version 6.9.2 -OutputDirectory "$env:RUNNER_TEMP\nuget" -NonInteractive
           Write-Host "=== HslCommunication NuGet 包内容 ==="
           Get-ChildItem "$env:RUNNER_TEMP\nuget\HslCommunication*\lib\" -ErrorAction SilentlyContinue |
               ForEach-Object { Write-Host "  $($_.Name)" }
