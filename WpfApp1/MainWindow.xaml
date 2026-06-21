@@ -1,0 +1,303 @@
+<Window x:Class="WpfApp1.MainWindow"
+        xmlns="http://schemas.microsoft.com/winfx/2006/xaml/presentation"
+        xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
+        xmlns:uc="clr-namespace:WpfApp1.UserControls"
+        Title="成品轴承外观机" WindowState="Maximized"
+        Background="#1E5C1E" Closing="Window_Closing">
+    <Window.Resources>
+        <BooleanToVisibilityConverter x:Key="BoolToVis"/>
+    </Window.Resources>
+
+    <DockPanel>
+        <!-- 顶部菜单 -->
+        <Menu DockPanel.Dock="Top" Background="#2A7A2A" Foreground="White">
+            <MenuItem Header="方案" Foreground="White">
+                <MenuItem Header="选择方案文件" Click="MenuSelectSolution_Click" Foreground="Black"/>
+                <MenuItem Header="加载方案" Click="MenuLoadSolution_Click" Foreground="Black"/>
+            </MenuItem>
+            <MenuItem Header="相机设置" Foreground="White" Click="MenuCameraSet_Click"/>
+            <MenuItem Header="全局变量" Foreground="White" Click="MenuGlobalVar_Click"/>
+            <MenuItem Header="光源通讯" Foreground="White" Click="MenuLightComm_Click"/>
+            <MenuItem Header="登录" Foreground="White" HorizontalAlignment="Right" Click="MenuLogin_Click"/>
+        </Menu>
+
+        <!-- 导航标签 -->
+        <TabControl x:Name="mainTab" DockPanel.Dock="Top" Background="#1E5C1E"
+                    BorderThickness="0" Padding="0" Height="Auto">
+            <!-- 主页面 -->
+            <TabItem Header="主页面">
+                <Grid>
+                    <Grid.ColumnDefinitions>
+                        <ColumnDefinition Width="*"/>
+                        <ColumnDefinition Width="260"/>
+                    </Grid.ColumnDefinitions>
+
+                    <!-- 左侧：6相机图像 -->
+                    <uc:MainImageShowUserControl Grid.Column="0" DataContext="{Binding}"/>
+
+                    <!-- 右侧：控制面板 -->
+                    <ScrollViewer Grid.Column="1" VerticalScrollBarVisibility="Auto">
+                        <StackPanel Margin="4">
+                            <!-- 生产数据 -->
+                            <GroupBox Header="生产数据" Margin="0,2">
+                                <Grid>
+                                    <Grid.RowDefinitions>
+                                        <RowDefinition Height="28"/>
+                                        <RowDefinition Height="*"/>
+                                        <RowDefinition Height="28"/>
+                                    </Grid.RowDefinitions>
+                                    <Button Grid.Row="0" Content="计数清零" Style="{StaticResource GreenButton}"
+                                            Command="{Binding ResetCountCommand}" HorizontalAlignment="Right" Width="80"/>
+                                    <uc:DataSelectUserControl Grid.Row="1" DataContext="{Binding}"/>
+                                    <TextBlock Grid.Row="2" Margin="2">
+                                        <Run Text="总数: "/><Run Text="{Binding ResultVM.TotalCount}"/>
+                                        <Run Text="  合格: "/><Run Text="{Binding ResultVM.OKCount}" Foreground="#00FF00"/>
+                                        <Run Text="  不合格: "/><Run Text="{Binding ResultVM.NGCount}" Foreground="Red"/>
+                                        <Run Text="  合格率: "/><Run Text="{Binding ResultVM.PassRate}"/>
+                                    </TextBlock>
+                                </Grid>
+                            </GroupBox>
+
+                            <!-- 通行模式 -->
+                            <GroupBox Header="通行模式" Margin="0,2">
+                                <UniformGrid Columns="3" Rows="2">
+                                    <CheckBox Content="相机1" IsChecked="{Binding Config.CameraEnable[0]}" Margin="4"/>
+                                    <CheckBox Content="相机2" IsChecked="{Binding Config.CameraEnable[1]}" Margin="4"/>
+                                    <CheckBox Content="相机3" IsChecked="{Binding Config.CameraEnable[2]}" Margin="4"/>
+                                    <CheckBox Content="相机4" IsChecked="{Binding Config.CameraEnable[3]}" Margin="4"/>
+                                    <CheckBox Content="相机5" IsChecked="{Binding Config.CameraEnable[4]}" Margin="4"/>
+                                    <CheckBox Content="相机6" IsChecked="{Binding Config.CameraEnable[5]}" Margin="4"/>
+                                </UniformGrid>
+                            </GroupBox>
+
+                            <!-- 调试按钮 -->
+                            <GroupBox Header="调试按钮" Margin="0,2">
+                                <UniformGrid Columns="2" Rows="3">
+                                    <Button Content="相机1触发" Style="{StaticResource TriggerButton}" Margin="2"
+                                            Command="{Binding ManualTriggerCommand}" CommandParameter="0"/>
+                                    <Button Content="相机2触发" Style="{StaticResource TriggerButton}" Margin="2"
+                                            Command="{Binding ManualTriggerCommand}" CommandParameter="1"/>
+                                    <Button Content="相机3触发" Style="{StaticResource TriggerButton}" Margin="2"
+                                            Command="{Binding ManualTriggerCommand}" CommandParameter="2"/>
+                                    <Button Content="相机4触发" Style="{StaticResource TriggerButton}" Margin="2"
+                                            Command="{Binding ManualTriggerCommand}" CommandParameter="3"/>
+                                    <Button Content="相机5触发" Style="{StaticResource TriggerButton}" Margin="2"
+                                            Command="{Binding ManualTriggerCommand}" CommandParameter="4"/>
+                                    <Button Content="相机6触发" Style="{StaticResource TriggerButton}" Margin="2"
+                                            Command="{Binding ManualTriggerCommand}" CommandParameter="5"/>
+                                </UniformGrid>
+                            </GroupBox>
+
+                            <!-- 操作控制 -->
+                            <GroupBox Header="操作控制" Margin="0,2">
+                                <StackPanel>
+                                    <Grid Margin="2,4">
+                                        <Grid.ColumnDefinitions>
+                                            <ColumnDefinition Width="50"/>
+                                            <ColumnDefinition Width="*"/>
+                                            <ColumnDefinition Width="60"/>
+                                        </Grid.ColumnDefinitions>
+                                        <TextBlock Grid.Column="0" Text="型号：" VerticalAlignment="Center"/>
+                                        <TextBox Grid.Column="1" Text="{Binding ModelNo, UpdateSourceTrigger=PropertyChanged}" Margin="2,0"/>
+                                        <TextBlock Grid.Column="2" Text="" VerticalAlignment="Center" Margin="4,0,0,0"/>
+                                    </Grid>
+                                    <Grid Margin="2,2">
+                                        <Grid.ColumnDefinitions>
+                                            <ColumnDefinition Width="60"/>
+                                            <ColumnDefinition Width="*"/>
+                                        </Grid.ColumnDefinitions>
+                                        <TextBlock Grid.Column="0" Text="编批次号：" VerticalAlignment="Center" FontSize="10"/>
+                                        <TextBox Grid.Column="1" Text="{Binding EditBatchNo, UpdateSourceTrigger=PropertyChanged}" Margin="2,0"/>
+                                    </Grid>
+                                    <Grid Margin="2,2">
+                                        <Grid.ColumnDefinitions>
+                                            <ColumnDefinition Width="60"/>
+                                            <ColumnDefinition Width="*"/>
+                                        </Grid.ColumnDefinitions>
+                                        <TextBlock Grid.Column="0" Text="现批次号：" VerticalAlignment="Center" FontSize="10"/>
+                                        <TextBox Grid.Column="1" Text="{Binding CurrentBatchNo}" IsReadOnly="True"
+                                                 Background="#155015" Margin="2,0"/>
+                                    </Grid>
+                                    <Grid Margin="4,6">
+                                        <Grid.ColumnDefinitions>
+                                            <ColumnDefinition Width="*"/>
+                                            <ColumnDefinition Width="*"/>
+                                        </Grid.ColumnDefinitions>
+                                        <Button Grid.Column="0" Content="开始" Height="42" Margin="4,0"
+                                                Style="{StaticResource StartButton}"
+                                                Command="{Binding StartCommand}"/>
+                                        <Button Grid.Column="1" Content="停止" Height="42" Margin="4,0"
+                                                Style="{StaticResource StopButton}"
+                                                Command="{Binding StopCommand}"/>
+                                    </Grid>
+                                    <Button Content="打开存图目录" Style="{StaticResource GreenButton}"
+                                            Margin="4,2" Command="{Binding OpenSavePathCommand}"/>
+                                </StackPanel>
+                            </GroupBox>
+
+                            <!-- 缺陷汇总 -->
+                            <GroupBox Header="缺陷汇总" Margin="0,2">
+                                <Grid>
+                                    <Grid.ColumnDefinitions>
+                                        <ColumnDefinition Width="*"/>
+                                        <ColumnDefinition Width="*"/>
+                                    </Grid.ColumnDefinitions>
+                                    <Grid.RowDefinitions>
+                                        <RowDefinition Height="22"/>
+                                        <RowDefinition Height="22"/>
+                                        <RowDefinition Height="22"/>
+                                        <RowDefinition Height="22"/>
+                                    </Grid.RowDefinitions>
+                                    <TextBlock Grid.Row="0" Grid.Column="0" Text="台前上线始" Margin="2"/>
+                                    <TextBlock Grid.Row="0" Grid.Column="1" Text="{Binding ResultVM.DefectConveyor}" Margin="2"/>
+                                    <TextBlock Grid.Row="1" Grid.Column="0" Text="无流道" Margin="2"/>
+                                    <TextBlock Grid.Row="1" Grid.Column="1" Text="{Binding ResultVM.DefectNoRunner}" Margin="2"/>
+                                    <TextBlock Grid.Row="2" Grid.Column="0" Text="瑕检测" Margin="2"/>
+                                    <TextBlock Grid.Row="2" Grid.Column="1" Text="{Binding ResultVM.DefectFlaw}" Margin="2"/>
+                                    <TextBlock Grid.Row="3" Grid.Column="0" Text="AI检测" Margin="2"/>
+                                    <TextBlock Grid.Row="3" Grid.Column="1" Text="{Binding ResultVM.DefectAi}" Margin="2"/>
+                                </Grid>
+                            </GroupBox>
+
+                            <!-- 系统监控 -->
+                            <GroupBox Header="系统监控" Margin="0,2">
+                                <Grid>
+                                    <Grid.ColumnDefinitions>
+                                        <ColumnDefinition Width="*"/>
+                                        <ColumnDefinition Width="*"/>
+                                    </Grid.ColumnDefinitions>
+                                    <Grid.RowDefinitions>
+                                        <RowDefinition Height="22"/>
+                                        <RowDefinition Height="22"/>
+                                    </Grid.RowDefinitions>
+                                    <TextBlock Grid.Row="0" Grid.Column="0" Text="D盘剩余" Margin="2"/>
+                                    <TextBlock Grid.Row="0" Grid.Column="1" Text="{Binding DiskInfo}" Margin="2" FontSize="10"/>
+                                    <TextBlock Grid.Row="1" Grid.Column="0" Text="CPU占用" Margin="2"/>
+                                    <TextBlock Grid.Row="1" Grid.Column="1" Text="{Binding CpuInfo}" Margin="2"/>
+                                </Grid>
+                            </GroupBox>
+                        </StackPanel>
+                    </ScrollViewer>
+                </Grid>
+            </TabItem>
+
+            <!-- 方案配置 -->
+            <TabItem Header="方案配置">
+                <ScrollViewer>
+                    <StackPanel Margin="10">
+                        <GroupBox Header="保存">
+                            <Button Content="保存" Style="{StaticResource GreenButton}" Width="80"
+                                    HorizontalAlignment="Left" Command="{Binding SaveConfigCommand}"/>
+                        </GroupBox>
+                        <GroupBox Header="方案选择" Margin="0,4">
+                            <Grid>
+                                <Grid.RowDefinitions>
+                                    <RowDefinition Height="36"/>
+                                    <RowDefinition Height="36"/>
+                                </Grid.RowDefinitions>
+                                <Grid.ColumnDefinitions>
+                                    <ColumnDefinition Width="80"/>
+                                    <ColumnDefinition Width="*"/>
+                                    <ColumnDefinition Width="80"/>
+                                    <ColumnDefinition Width="80"/>
+                                </Grid.ColumnDefinitions>
+                                <TextBlock Grid.Row="0" Grid.Column="0" Text="方案路径：" VerticalAlignment="Center"/>
+                                <TextBox Grid.Row="0" Grid.Column="1" Grid.ColumnSpan="2"
+                                         Text="{Binding SolutionPath}" Margin="4,4"/>
+                                <Button Grid.Row="0" Grid.Column="3" Content="浏览" Margin="4"
+                                        Style="{StaticResource GreenButton}" Click="BtnBrowseSolution_Click"/>
+                                <TextBlock Grid.Row="1" Grid.Column="0" Text="物料有没围：" VerticalAlignment="Center" FontSize="10"/>
+                                <CheckBox Grid.Row="1" Grid.Column="1" IsChecked="{Binding HasEnclosure}" VerticalAlignment="Center"/>
+                            </Grid>
+                        </GroupBox>
+
+                        <!-- 通行模式 -->
+                        <GroupBox Header="通行模式" Margin="0,4">
+                            <UniformGrid Columns="3" Rows="2">
+                                <CheckBox Content="相机1" IsChecked="{Binding Config.CameraEnable[0]}" Margin="8,4"/>
+                                <CheckBox Content="相机2" IsChecked="{Binding Config.CameraEnable[1]}" Margin="8,4"/>
+                                <CheckBox Content="相机3" IsChecked="{Binding Config.CameraEnable[2]}" Margin="8,4"/>
+                                <CheckBox Content="相机4" IsChecked="{Binding Config.CameraEnable[3]}" Margin="8,4"/>
+                                <CheckBox Content="相机5" IsChecked="{Binding Config.CameraEnable[4]}" Margin="8,4"/>
+                                <CheckBox Content="相机6" IsChecked="{Binding Config.CameraEnable[5]}" Margin="8,4"/>
+                            </UniformGrid>
+                        </GroupBox>
+
+                        <!-- 调试触发 -->
+                        <GroupBox Header="调试触发" Margin="0,4">
+                            <UniformGrid Columns="3" Rows="2">
+                                <Button Content="相机1触发" Style="{StaticResource TriggerButton}" Margin="4"
+                                        Command="{Binding ManualTriggerCommand}" CommandParameter="0"/>
+                                <Button Content="相机2触发" Style="{StaticResource TriggerButton}" Margin="4"
+                                        Command="{Binding ManualTriggerCommand}" CommandParameter="1"/>
+                                <Button Content="相机3触发" Style="{StaticResource TriggerButton}" Margin="4"
+                                        Command="{Binding ManualTriggerCommand}" CommandParameter="2"/>
+                                <Button Content="相机4触发" Style="{StaticResource TriggerButton}" Margin="4"
+                                        Command="{Binding ManualTriggerCommand}" CommandParameter="3"/>
+                                <Button Content="相机5触发" Style="{StaticResource TriggerButton}" Margin="4"
+                                        Command="{Binding ManualTriggerCommand}" CommandParameter="4"/>
+                                <Button Content="相机6触发" Style="{StaticResource TriggerButton}" Margin="4"
+                                        Command="{Binding ManualTriggerCommand}" CommandParameter="5"/>
+                            </UniformGrid>
+                        </GroupBox>
+
+                        <!-- 光源亮度 -->
+                        <uc:BrightnessUserControl DataContext="{Binding BrightnessVM}" Margin="0,4"/>
+
+                        <!-- 通讯设置 -->
+                        <uc:TCPClientUserControl DataContext="{Binding TCPClientVM}" Margin="0,4"/>
+                    </StackPanel>
+                </ScrollViewer>
+            </TabItem>
+
+            <!-- 检测配置 -->
+            <TabItem Header="检测配置">
+                <uc:CheckSetUserControl DataContext="{Binding CheckSetVM}"/>
+            </TabItem>
+
+            <!-- 设置 -->
+            <TabItem Header="设置">
+                <ScrollViewer>
+                    <StackPanel Margin="10">
+                        <Button Content="保存" Style="{StaticResource GreenButton}" Width="80"
+                                HorizontalAlignment="Left" Margin="0,4"
+                                Command="{Binding SaveConfigCommand}"/>
+                        <uc:BrightnessUserControl DataContext="{Binding BrightnessVM}" Margin="0,4"/>
+                        <uc:TCPClientUserControl DataContext="{Binding TCPClientVM}" Margin="0,4"/>
+                    </StackPanel>
+                </ScrollViewer>
+            </TabItem>
+
+            <!-- 实时图像 -->
+            <TabItem Header="实时图像">
+                <uc:MainImageShowUserControl DataContext="{Binding}"/>
+            </TabItem>
+
+            <!-- 显示数据 -->
+            <TabItem Header="显示数据">
+                <uc:DataSelectUserControl DataContext="{Binding}"/>
+            </TabItem>
+        </TabControl>
+
+        <!-- 状态栏 -->
+        <StatusBar DockPanel.Dock="Bottom" Background="#155015" Foreground="White">
+            <StatusBarItem>
+                <TextBlock Text="{Binding StatusText}"/>
+            </StatusBarItem>
+            <Separator/>
+            <StatusBarItem>
+                <TextBlock>
+                    <Run Text="PLC: "/>
+                    <Run Text="{Binding IsConnected, Converter={StaticResource BoolToVis}}" Foreground="#00FF00"/>
+                </TextBlock>
+            </StatusBarItem>
+            <Separator/>
+            <StatusBarItem HorizontalAlignment="Right">
+                <TextBlock Text="{Binding CurrentUserName}"/>
+            </StatusBarItem>
+        </StatusBar>
+
+        <!-- 填充区域 -->
+        <Grid/>
+    </DockPanel>
+</Window>

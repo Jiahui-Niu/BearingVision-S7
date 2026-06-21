@@ -1,0 +1,61 @@
+## WpfApp1 重新开发说明
+
+开发日期：2026-06-21
+开发依据：4张截图 + ICPlatformTools已恢复代码 + git历史记录
+
+### 编译前置条件
+
+1. 安装 VisionMaster 4.4.3（海康机器人视觉算法平台）
+   - 安装后会自动注册 VM.Core, VM.PlatformSDKCS 等程序集
+   - log4net.dll 路径：C:\Program Files\VisionMaster4.4.3\Development\V4.x\ComControls\Assembly\
+
+2. HslCommunication.dll
+   - 放置于 WpfApp1\bin\x64\Debug\ 目录
+   - 版本支持 S7 1200/1500 和 Omron FINS TCP
+
+3. Newtonsoft.Json.dll
+   - 已包含在 ICPlatformTools\Dll\ 目录
+
+### VM SDK 集成说明（重要）
+
+MainViewModel.cs 中的 TriggerVMCamera() 方法包含 TODO 注释。
+需要根据实际VM工程配置修改以下内容：
+- Group名称（当前占位为 "Cam1" 至 "Cam6"）
+- 全局变量名称（触发信号、检测结果）
+- 具体的 VM SDK API 调用
+
+参考 VM SDK 文档确认以下API：
+- 加载方案：MVisionMaster.Instance.Solution.Load(path)
+- 执行流程：solution.GetProcedure("GroupName").Execute()
+- 读取结果：global variable module API
+
+### 项目结构
+
+WpfApp1/
+├── Model/AppConfig.cs          # 配置模型（JSON持久化）
+├── ViewModel/
+│   ├── MainViewModel.cs        # 核心逻辑：PLC轮询、VM触发、统计
+│   ├── MainImageShowViewModel.cs # 单相机状态
+│   ├── CheckSetViewModel.cs    # 检测配置
+│   ├── BrightnessViewModel.cs  # 光源配置
+│   ├── CheckResultViewModel.cs # 生产统计
+│   └── TCPClient.cs            # PLC通讯测试
+├── UserControls/               # 各配置界面控件
+├── View/
+│   ├── LoginWindow.xaml        # 登录（操作员/工程师/管理员）
+│   └── ReViewWindow.xaml       # 图像回放
+├── Themes/GlobalStyle.xaml     # 绿色主题
+└── MainWindow.xaml             # 主界面（6相机+配置标签页）
+
+### PLC 地址映射（默认配置）
+
+| 工位  | 名称   | First    | Start   | Result  |
+|-------|--------|----------|---------|---------|
+| Cam1  | 内径1  | DB85.40  | DB85.0  | DB85.20 |
+| Cam2  | 端面1  | DB85.42  | DB85.2  | DB85.22 |
+| Cam3  | 端面2  | DB85.44  | DB85.4  | DB85.24 |
+| Cam4  | 内径2  | DB85.46  | DB85.6  | DB85.26 |
+| Cam5  | 外径1  | DB85.48  | DB85.8  | DB85.28 |
+| Cam6  | 外径2  | DB85.50  | DB85.10 | DB85.30 |
+
+Result值：1=OK, 2=NG
