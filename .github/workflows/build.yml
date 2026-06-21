@@ -76,7 +76,7 @@ jobs:
 
       # 先编译 VM SDK 桩项目
       - name: Build VMSdkStubs
-        run: msbuild VMSdkStubs\VMSdkStubs.csproj /p:Configuration=Debug /p:Platform="Any CPU" /nologo /verbosity:minimal
+        run: msbuild VMSdkStubs\VMSdkStubs.csproj /p:Configuration=Debug /nologo /verbosity:minimal
 
       # 编译主解决方案
       # BuildingForCI=true  → 使用 VMSdkStubs 替代真实 VM SDK
