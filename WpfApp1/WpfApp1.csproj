@@ -240,6 +240,9 @@
     <Compile Include="ViewModel\CheckSetViewModel.cs" />
     <Compile Include="ViewModel\BrightnessViewModel.cs" />
     <Compile Include="ViewModel\TCPClient.cs" />
+
+    <!-- CI 模式：用 stub 替代 XAML 编译器生成的代码（不运行 mc.exe / WPFTaskHost） -->
+    <Compile Include="XamlGeneratedStubs.ci.cs" Condition="'$(BuildingForCI)' == 'true'" />
   </ItemGroup>
 
   <Import Project="$(MSBuildToolsPath)\Microsoft.CSharp.targets" />
