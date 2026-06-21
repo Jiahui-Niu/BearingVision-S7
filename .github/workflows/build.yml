@@ -74,6 +74,28 @@ jobs:
           $xml.Save((Resolve-Path $csproj).Path)
           Write-Host "已移除 $removed 个 VM SDK 引用（ICPlatformTools 代码未使用这些类型）"
 
+      # ICPlatformTools 的 log4Net HintPath 指向本地 VM 安装路径，CI 不存在
+      # 将其替换为 NuGet 下载的路径
+      - name: Fix ICPlatformTools log4Net HintPath for CI
+        shell: pwsh
+        run: |
+          $csproj = "ICPlatformTools\ICPlatformTools.csproj"
+          [xml]$xml = Get-Content $csproj -Encoding UTF8
+          $ns = New-Object System.Xml.XmlNamespaceManager($xml.NameTable)
+          $ns.AddNamespace("ms", "http://schemas.microsoft.com/developer/msbuild/2003")
+          $refs = $xml.SelectNodes("//ms:Reference", $ns)
+          foreach ($ref in @($refs)) {
+            $name = $ref.GetAttribute("Include").Split(',')[0].Trim()
+            if ($name -ieq "log4Net") {
+              $hp = $ref.SelectSingleNode("ms:HintPath", $ns)
+              if ($hp) {
+                $hp.InnerText = "$env:CILibPath\log4Net.dll"
+                Write-Host "已替换 log4Net HintPath → $env:CILibPath\log4Net.dll"
+              }
+            }
+          }
+          $xml.Save((Resolve-Path $csproj).Path)
+
       # 安装 .NET Framework 4.6.1 Targeting Pack（windows-latest 默认不含）
       - name: Install .NET Framework 4.6.1 Developer Pack
         run: choco install netfx-4.6.1-devpack --yes --no-progress
