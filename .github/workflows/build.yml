@@ -8,14 +8,11 @@ on:
 
 jobs:
   build:
-    runs-on: windows-2019
+    runs-on: windows-latest
 
     steps:
       - name: Checkout
         uses: actions/checkout@v4
-
-      - name: Setup MSBuild
-        uses: microsoft/setup-msbuild@v2
 
       - name: Setup NuGet
         uses: nuget/setup-nuget@v2
@@ -41,8 +38,6 @@ jobs:
                  Select-Object -First 1
           if (-not $hsl) { throw "HslCommunication.dll 未找到，请检查 NuGet 包结构" }
           Copy-Item $hsl.FullName "$libPath\HslCommunication.dll"
-          Write-Host "HslCommunication: $($hsl.FullName)"
-
           Write-Host "依赖已下载至: $libPath"
 
       # ICPlatformTools 引用了 80+ 个未使用的 VM SDK DLL（无 HintPath，需从 GAC 找）
@@ -57,12 +52,10 @@ jobs:
           $ns = New-Object System.Xml.XmlNamespaceManager($xml.NameTable)
           $ns.AddNamespace("ms", "http://schemas.microsoft.com/developer/msbuild/2003")
 
-          # 标准程序集前缀 —— 保留这些（含 log4net，但会单独替换 HintPath）
           $keep = @("System","Microsoft","PresentationCore","PresentationFramework",
                     "WindowsBase","WindowsFormsIntegration","AForge","FluentFTP",
                     "NAudio","Renci","Newtonsoft","OpenHardwareMonitorLib","log4net")
 
-          # 删除没有 HintPath、且不属于标准程序集的引用（均为 VM SDK 模块）
           $refs = $xml.SelectNodes("//ms:Reference[not(ms:HintPath)]", $ns)
           $removed = 0
           foreach ($ref in @($refs)) {
@@ -80,7 +73,6 @@ jobs:
           }
           Write-Host "已移除 $removed 个 VM SDK 引用"
 
-          # 将 log4Net HintPath 替换为 NuGet 下载路径
           foreach ($ref in @($xml.SelectNodes("//ms:Reference", $ns))) {
             $name = $ref.GetAttribute("Include").Split(',')[0].Trim()
             if ($name -ieq "log4Net") {
@@ -98,25 +90,34 @@ jobs:
       - name: Install .NET Framework 4.6.1 Developer Pack
         run: choco install netfx-4.6.1-devpack --yes --no-progress
 
-      # 先编译 VM SDK 桩项目
+      # 用 vswhere 定位 64 位 MSBuild，避免 32 位编译器触发 WPF MC1000 错误
       - name: Build VMSdkStubs
-        run: msbuild VMSdkStubs\VMSdkStubs.csproj /p:Configuration=Debug /nologo /verbosity:minimal
+        shell: pwsh
+        run: |
+          $vswhere = "${env:ProgramFiles(x86)}\Microsoft Visual Studio\Installer\vswhere.exe"
+          $msbuild = & $vswhere -latest -requires Microsoft.Component.MSBuild `
+                       -find "MSBuild\**\Bin\amd64\MSBuild.exe" | Select-Object -First 1
+          Write-Host "Using MSBuild: $msbuild"
+          & $msbuild VMSdkStubs\VMSdkStubs.csproj /p:Configuration=Debug /nologo /verbosity:minimal
 
-      # 编译主解决方案
       # BuildingForCI=true  → 使用 VMSdkStubs 替代真实 VM SDK
-      # CILibPath           → log4net / HslCommunication 所在目录（直接用 RUNNER_TEMP 路径）
+      # CILibPath           → log4net / HslCommunication 所在目录
+      # 显式使用 64 位 MSBuild 以避免 WPF XAML 编译器 MC1000 错误
       - name: Build Solution
         shell: pwsh
         run: |
           $libPath = "$env:RUNNER_TEMP\CILibs"
-          msbuild "成品轴承外观机.sln" `
+          $vswhere = "${env:ProgramFiles(x86)}\Microsoft Visual Studio\Installer\vswhere.exe"
+          $msbuild = & $vswhere -latest -requires Microsoft.Component.MSBuild `
+                       -find "MSBuild\**\Bin\amd64\MSBuild.exe" | Select-Object -First 1
+          Write-Host "Using MSBuild: $msbuild"
+          & $msbuild "成品轴承外观机.sln" `
             /p:Configuration=Debug `
             /p:Platform=x64 `
             /p:BuildingForCI=true `
             "/p:CILibPath=$libPath" `
             /m /nologo /verbosity:minimal
 
-      # 把编译结果上传为 Artifact，方便查看是否真的生成了 exe
       - name: Upload build output
         uses: actions/upload-artifact@v4
         with:
