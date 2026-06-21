@@ -86,6 +86,23 @@ jobs:
 
           $xml.Save((Resolve-Path $csproj).Path)
 
+          # ── WpfApp1.csproj：覆盖所有 XAML Pass2 目标 ──────────────────
+          # WPFTaskHost.exe 是 32 位进程，加载 ICPlatformTools 的传递依赖
+          # （AForge 等老库）时触发 MC1000。
+          # 无条件追加空 Target 覆盖（追加到文件末尾，MSBuild 后者优先），
+          # Pass1 仍运行（生成 InitializeComponent 分部类），C# 语法照常验证。
+          $wpfCsproj = "WpfApp1\WpfApp1.csproj"
+          [xml]$wpf = Get-Content $wpfCsproj -Encoding UTF8
+          $msbuildNs = "http://schemas.microsoft.com/developer/msbuild/2003"
+          foreach ($tname in @("MarkupCompilePass2", "_MarkupCompilePass2ForMainAssembly",
+                               "GenerateTemporaryTargetAssembly")) {
+            $t = $wpf.CreateElement("Target", $msbuildNs)
+            $t.SetAttribute("Name", $tname)
+            $wpf.Project.AppendChild($t) | Out-Null
+            Write-Host "已添加空 Target 覆盖: $tname"
+          }
+          $wpf.Save((Resolve-Path $wpfCsproj).Path)
+
       # 启用 .NET Framework 3.5（AForge 等旧库依赖 System.Core 3.5，
       # WPF XAML 编译器加载推导依赖时需要它；Windows Server 2022 默认未启用）
       - name: Enable .NET Framework 3.5
