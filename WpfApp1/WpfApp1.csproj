@@ -243,14 +243,4 @@
   </ItemGroup>
 
   <Import Project="$(MSBuildToolsPath)\Microsoft.CSharp.targets" />
-
-  <!--
-    CI 模式下跳过 MarkupCompilePass2（BAML 二进制 XAML 生成 + 类型验证）。
-    Pass1 仍然运行，会检查 XAML 语法并生成 InitializeComponent 分部类。
-    跳过 Pass2 可以避免 WPFTaskHost.exe（32 位进程）加载 AForge 等老库时
-    触发的 MC1000 错误（System.Core 3.5 PublicKeyToken=null 强名称冲突）。
-    生成的 exe 无法运行，但 C#/XAML 语法正确性可以验证。
-  -->
-  <Target Name="MarkupCompilePass2" Condition="'$(BuildingForCI)' == 'true'" />
-
 </Project>
