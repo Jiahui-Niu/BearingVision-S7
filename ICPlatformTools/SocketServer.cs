@@ -17,27 +17,37 @@ namespace ICPlatformTools
         private readonly int _port;
         private readonly byte[] _buffer = new byte[4096];
 
-        public Action<string, string> ReceiveHandler { get; set; }   // (clientIP, message)
-        public Action<byte[], string> RawReceiveHandler { get; set; } // (data, clientIP)
-        public Action<string, bool> ClientConnectAction { get; set; } // (clientIP, connected)
+        public Action<string> ReceiveHandler { get; set; }       // (message)
+        public Action<byte[]> RawMsgReceiveHandler { get; set; } // (raw data)
+        public Action<string, bool> ClientConnectAction { get; set; } // (ip, connected)
 
+        public bool IsConnect => _isRunning;
         public bool IsRunning => _isRunning;
 
-        public SocketServer(int port)
+        public SocketServer(string ip, int port)
         {
             _port = port;
         }
 
-        public void Start()
+        public int Start()
         {
-            if (_isRunning) return;
-            _serverSocket = new Socket(AddressFamily.InterNetwork, SocketType.Stream, ProtocolType.Tcp);
-            _serverSocket.Bind(new IPEndPoint(IPAddress.Any, _port));
-            _serverSocket.Listen(10);
-            _isRunning = true;
-            _acceptThread = new Thread(AcceptLoop) { IsBackground = true, Name = "SocketServer_Accept" };
-            _acceptThread.Start();
-            LogHelper.Log.Info($"SocketServer 已启动，监听端口 {_port}");
+            try
+            {
+                if (_isRunning) return 0;
+                _serverSocket = new Socket(AddressFamily.InterNetwork, SocketType.Stream, ProtocolType.Tcp);
+                _serverSocket.Bind(new IPEndPoint(IPAddress.Any, _port));
+                _serverSocket.Listen(10);
+                _isRunning = true;
+                _acceptThread = new Thread(AcceptLoop) { IsBackground = true, Name = "SocketServer_Accept" };
+                _acceptThread.Start();
+                LogHelper.Log.Info($"SocketServer 已启动，监听端口 {_port}");
+                return 0;
+            }
+            catch (Exception ex)
+            {
+                LogHelper.Log.Error("SocketServer 启动失败", ex);
+                return -1;
+            }
         }
 
         public void Stop()
@@ -52,7 +62,7 @@ namespace ICPlatformTools
             LogHelper.Log.Info("SocketServer 已停止");
         }
 
-        public void SendAll(byte[] data)
+        public int Send(byte[] data)
         {
             lock (_clientLock)
             {
@@ -64,9 +74,13 @@ namespace ICPlatformTools
                 }
                 foreach (var c in dead) _clients.Remove(c);
             }
+            return 0;
         }
 
-        public void SendAll(string message) => SendAll(Encoding.UTF8.GetBytes(message));
+        public int Send(string message) => Send(Encoding.UTF8.GetBytes(message));
+
+        public void SendAll(byte[] data) => Send(data);
+        public void SendAll(string message) => Send(message);
 
         private void AcceptLoop()
         {
@@ -110,8 +124,8 @@ namespace ICPlatformTools
                         } while (client.Available > 0);
 
                         var bytes = buf.ToArray();
-                        RawReceiveHandler?.Invoke(bytes, ip);
-                        ReceiveHandler?.Invoke(ip, Encoding.UTF8.GetString(bytes));
+                        RawMsgReceiveHandler?.Invoke(bytes);
+                        ReceiveHandler?.Invoke(Encoding.UTF8.GetString(bytes));
                     }
                 }
                 catch (Exception ex)
