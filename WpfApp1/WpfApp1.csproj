@@ -102,10 +102,6 @@
       <HintPath>$(CILibPath)\log4Net.dll</HintPath>
       <Private>True</Private>
     </Reference>
-    <Reference Include="HslCommunication">
-      <HintPath>$(CILibPath)\HslCommunication.dll</HintPath>
-      <Private>True</Private>
-    </Reference>
   </ItemGroup>
 
   <ItemGroup>
