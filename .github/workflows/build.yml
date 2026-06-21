@@ -32,26 +32,7 @@ jobs:
           Copy-Item $log4net.FullName "$libPath\log4Net.dll"
           Write-Host "log4net: $($log4net.FullName)"
 
-          nuget install HslCommunication -Version 6.9.2 -OutputDirectory "$env:RUNNER_TEMP\nuget" -NonInteractive
-          Write-Host "=== HslCommunication NuGet 包内容 ==="
-          Get-ChildItem "$env:RUNNER_TEMP\nuget\HslCommunication*\lib\" -ErrorAction SilentlyContinue |
-              ForEach-Object { Write-Host "  $($_.Name)" }
-          # 显式选用 .NET 4.x 版本（net35/net20 依赖非强名称 System.Core 3.5，会导致 mc.exe MC1000）
-          $hsl = $null
-          foreach ($tfm in @("net461", "net45", "net40", "net40-client")) {
-            $candidate = Get-ChildItem "$env:RUNNER_TEMP\nuget\HslCommunication*\lib\$tfm\HslCommunication.dll" `
-                         -ErrorAction SilentlyContinue | Select-Object -First 1
-            if ($candidate) { $hsl = $candidate; Write-Host "HslCommunication 选用 TFM: $tfm"; break }
-          }
-          if (-not $hsl) {
-            $hsl = Get-ChildItem "$env:RUNNER_TEMP\nuget\HslCommunication*\" `
-                   -Filter "HslCommunication.dll" -Recurse -ErrorAction SilentlyContinue |
-                   Where-Object { $_.FullName -notmatch "net[23][05]" } |
-                   Select-Object -First 1
-          }
-          if (-not $hsl) { throw "HslCommunication.dll 未找到，请检查 NuGet 包结构" }
-          Copy-Item $hsl.FullName "$libPath\HslCommunication.dll"
-          Write-Host "HslCommunication: $($hsl.FullName)"
+          # HslCommunication：CI 使用 VMSdkStubs 中的桩类型，不再从 NuGet 下载
 
           # System.ValueTuple — .NET 4.6.1 不内置此类型，LoginWindow.cs 的元组语法需要它
           nuget install System.ValueTuple -Version 4.5.0 -OutputDirectory "$env:RUNNER_TEMP\nuget" -NonInteractive
