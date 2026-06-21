@@ -52,6 +52,19 @@ jobs:
           if (-not $hsl) { throw "HslCommunication.dll 未找到，请检查 NuGet 包结构" }
           Copy-Item $hsl.FullName "$libPath\HslCommunication.dll"
           Write-Host "HslCommunication: $($hsl.FullName)"
+
+          # System.ValueTuple — .NET 4.6.1 不内置此类型，LoginWindow.cs 的元组语法需要它
+          nuget install System.ValueTuple -Version 4.5.0 -OutputDirectory "$env:RUNNER_TEMP\nuget" -NonInteractive
+          $vt = Get-ChildItem "$env:RUNNER_TEMP\nuget\System.ValueTuple*\lib\net461\System.ValueTuple.dll" `
+                -ErrorAction SilentlyContinue | Select-Object -First 1
+          if (-not $vt) {
+            $vt = Get-ChildItem "$env:RUNNER_TEMP\nuget\System.ValueTuple*\" `
+                  -Filter "System.ValueTuple.dll" -Recurse -ErrorAction SilentlyContinue |
+                  Select-Object -First 1
+          }
+          if (-not $vt) { throw "System.ValueTuple.dll 未找到" }
+          Copy-Item $vt.FullName "$libPath\System.ValueTuple.dll"
+          Write-Host "System.ValueTuple: $($vt.FullName)"
           Write-Host "依赖已下载至: $libPath"
 
       # ICPlatformTools 引用了 80+ 个未使用的 VM SDK DLL（无 HintPath，需从 GAC 找）
@@ -106,9 +119,11 @@ jobs:
           # 改用 LastIndexOf 只替换文件最末尾那一个根关闭标签
           $wpfCsproj = Resolve-Path "WpfApp1\WpfApp1.csproj"
           $src = [IO.File]::ReadAllText($wpfCsproj, [Text.Encoding]::UTF8)
+          # 注入 System.ValueTuple 引用（.NET 4.6.1 元组语法需要）
           # 覆盖全部 XAML 编译目标：Pass1 产生 mc.exe 调用（MC1000 的根源），一并禁用
           # XamlGeneratedStubs.ci.cs 提供 InitializeComponent/x:Name 字段替代 .g.cs
-          $inject = "  <Target Name=""MarkupCompilePass1"" />`r`n" +
+          $inject = "  <ItemGroup><Reference Include=""System.ValueTuple""><HintPath>$libPath\System.ValueTuple.dll</HintPath><Private>True</Private></Reference></ItemGroup>`r`n" +
+                    "  <Target Name=""MarkupCompilePass1"" />`r`n" +
                     "  <Target Name=""MarkupCompilePass2"" />`r`n" +
                     "  <Target Name=""_MarkupCompilePass2ForMainAssembly"" />`r`n" +
                     "  <Target Name=""GenerateTemporaryTargetAssembly"" />`r`n"
