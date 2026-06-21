@@ -74,6 +74,10 @@ jobs:
           $xml.Save((Resolve-Path $csproj).Path)
           Write-Host "已移除 $removed 个 VM SDK 引用（ICPlatformTools 代码未使用这些类型）"
 
+      # 安装 .NET Framework 4.6.1 Targeting Pack（windows-latest 默认不含）
+      - name: Install .NET Framework 4.6.1 Developer Pack
+        run: choco install netfx-4.6.1-devpack --yes --no-progress
+
       # 先编译 VM SDK 桩项目
       - name: Build VMSdkStubs
         run: msbuild VMSdkStubs\VMSdkStubs.csproj /p:Configuration=Debug /nologo /verbosity:minimal
