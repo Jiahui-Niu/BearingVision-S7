@@ -47,8 +47,8 @@
     <ErrorReport>prompt</ErrorReport>
   </PropertyGroup>
 
-  <ItemGroup>
-    <!-- VM SDK (需要安装 VisionMaster 4.4.3) -->
+  <!-- 生产环境：真实 VM SDK（需安装 VisionMaster 4.4.3） -->
+  <ItemGroup Condition="'$(BuildingForCI)' != 'true'">
     <Reference Include="VM.Core, Version=1.0.0.0, Culture=neutral, PublicKeyToken=61600122bc9264b9, processorArchitecture=MSIL">
       <Private>False</Private>
     </Reference>
@@ -86,12 +86,29 @@
       <HintPath>C:\Program Files\VisionMaster4.4.3\Development\V4.x\ComControls\Assembly\log4Net.dll</HintPath>
       <Private>False</Private>
     </Reference>
-
-    <!-- HslCommunication (PLC通信) -->
     <Reference Include="HslCommunication">
       <HintPath>bin\x64\Debug\HslCommunication.dll</HintPath>
       <Private>True</Private>
     </Reference>
+  </ItemGroup>
+
+  <!-- CI 环境：用桩 DLL 替代 VM SDK，log4net/HslCommunication 由工作流下载 -->
+  <ItemGroup Condition="'$(BuildingForCI)' == 'true'">
+    <Reference Include="VMSdkStubs">
+      <HintPath>..\VMSdkStubs\bin\Debug\VMSdkStubs.dll</HintPath>
+      <Private>True</Private>
+    </Reference>
+    <Reference Include="log4Net">
+      <HintPath>$(CILibPath)\log4Net.dll</HintPath>
+      <Private>True</Private>
+    </Reference>
+    <Reference Include="HslCommunication">
+      <HintPath>$(CILibPath)\HslCommunication.dll</HintPath>
+      <Private>True</Private>
+    </Reference>
+  </ItemGroup>
+
+  <ItemGroup>
 
     <!-- Newtonsoft.Json -->
     <Reference Include="Newtonsoft.Json">
