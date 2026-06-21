@@ -65,7 +65,7 @@ jobs:
           foreach ($ref in @($refs)) {
             $name = $ref.GetAttribute("Include").Split(',')[0].Trim()
             $isStd = $false
-            foreach ($p in $keep) { if ($name.StartsWith($p)) { $isStd = $true; break } }
+            foreach ($p in $keep) { if ($name.StartsWith($p, [System.StringComparison]::OrdinalIgnoreCase)) { $isStd = $true; break } }
             if (-not $isStd) {
               $ref.ParentNode.RemoveChild($ref) | Out-Null
               $removed++
