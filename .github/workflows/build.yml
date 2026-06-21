@@ -1,0 +1,98 @@
+name: Build
+
+on:
+  push:
+    branches: [ main ]
+  pull_request:
+    branches: [ main ]
+
+jobs:
+  build:
+    runs-on: windows-latest
+
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+
+      - name: Setup MSBuild
+        uses: microsoft/setup-msbuild@v2
+
+      - name: Setup NuGet
+        uses: nuget/setup-nuget@v2
+
+      # 下载 log4net 和 HslCommunication，放到临时目录供 MSBuild 引用
+      - name: Download dependencies via NuGet
+        shell: pwsh
+        run: |
+          $libPath = "$env:RUNNER_TEMP\CILibs"
+          New-Item -ItemType Directory -Force $libPath | Out-Null
+
+          nuget install log4net -Version 2.0.15 -OutputDirectory "$env:RUNNER_TEMP\nuget" -NonInteractive
+          $log4net = Get-ChildItem "$env:RUNNER_TEMP\nuget\log4net*\lib\net45-full\log4net.dll",
+                                   "$env:RUNNER_TEMP\nuget\log4net*\lib\net45\log4net.dll" `
+                     -ErrorAction SilentlyContinue | Select-Object -First 1
+          Copy-Item $log4net.FullName "$libPath\log4Net.dll"
+          Write-Host "log4net: $($log4net.FullName)"
+
+          nuget install HslCommunication -Version 11.8.1.0 -OutputDirectory "$env:RUNNER_TEMP\nuget" -NonInteractive
+          $hsl = Get-ChildItem "$env:RUNNER_TEMP\nuget\HslCommunication*\lib\net461\*.dll",
+                               "$env:RUNNER_TEMP\nuget\HslCommunication*\lib\net45\*.dll" `
+                 -ErrorAction SilentlyContinue | Select-Object -First 1
+          Copy-Item $hsl.FullName "$libPath\HslCommunication.dll"
+          Write-Host "HslCommunication: $($hsl.FullName)"
+
+          Write-Host "CILibPath=$libPath" >> $env:GITHUB_ENV
+
+      # ICPlatformTools 引用了 80+ 个未使用的 VM SDK DLL（无 HintPath，需从 GAC 找）
+      # CI 环境没有安装 VM，用脚本将这些引用从 csproj 中临时移除
+      - name: Strip unused VM SDK references from ICPlatformTools
+        shell: pwsh
+        run: |
+          $csproj = "ICPlatformTools\ICPlatformTools.csproj"
+          [xml]$xml = Get-Content $csproj -Encoding UTF8
+          $ns = New-Object System.Xml.XmlNamespaceManager($xml.NameTable)
+          $ns.AddNamespace("ms", "http://schemas.microsoft.com/developer/msbuild/2003")
+
+          # 标准程序集前缀 —— 保留这些
+          $keep = @("System","Microsoft","PresentationCore","PresentationFramework",
+                    "WindowsBase","WindowsFormsIntegration","AForge","FluentFTP",
+                    "NAudio","Renci","Newtonsoft","OpenHardwareMonitorLib","log4net")
+
+          # 删除没有 HintPath、且不属于标准程序集的引用（均为 VM SDK 模块）
+          $refs = $xml.SelectNodes("//ms:Reference[not(ms:HintPath)]", $ns)
+          $removed = 0
+          foreach ($ref in @($refs)) {
+            $name = $ref.GetAttribute("Include").Split(',')[0].Trim()
+            $isStd = $false
+            foreach ($p in $keep) { if ($name.StartsWith($p)) { $isStd = $true; break } }
+            if (-not $isStd) {
+              $ref.ParentNode.RemoveChild($ref) | Out-Null
+              $removed++
+            }
+          }
+          $xml.Save((Resolve-Path $csproj).Path)
+          Write-Host "已移除 $removed 个 VM SDK 引用（ICPlatformTools 代码未使用这些类型）"
+
+      # 先编译 VM SDK 桩项目
+      - name: Build VMSdkStubs
+        run: msbuild VMSdkStubs\VMSdkStubs.csproj /p:Configuration=Debug /p:Platform="Any CPU" /nologo /verbosity:minimal
+
+      # 编译主解决方案
+      # BuildingForCI=true  → 使用 VMSdkStubs 替代真实 VM SDK
+      # CILibPath           → log4net / HslCommunication 所在目录
+      - name: Build Solution
+        run: |
+          msbuild "成品轴承外观机.sln" `
+            /p:Configuration=Debug `
+            /p:Platform=x64 `
+            /p:BuildingForCI=true `
+            /p:CILibPath="$env:CILibPath" `
+            /m /nologo /verbosity:minimal
+
+      # 把编译结果上传为 Artifact，方便查看是否真的生成了 exe
+      - name: Upload build output
+        uses: actions/upload-artifact@v4
+        with:
+          name: WpfSurface-Debug
+          path: WpfApp1\bin\x64\Debug\WpfSurface.exe
+          if-no-files-found: warn
