@@ -86,22 +86,17 @@ jobs:
 
           $xml.Save((Resolve-Path $csproj).Path)
 
-          # ── WpfApp1.csproj：覆盖所有 XAML Pass2 目标 ──────────────────
-          # WPFTaskHost.exe 是 32 位进程，加载 ICPlatformTools 的传递依赖
-          # （AForge 等老库）时触发 MC1000。
-          # 无条件追加空 Target 覆盖（追加到文件末尾，MSBuild 后者优先），
-          # Pass1 仍运行（生成 InitializeComponent 分部类），C# 语法照常验证。
-          $wpfCsproj = "WpfApp1\WpfApp1.csproj"
-          [xml]$wpf = Get-Content $wpfCsproj -Encoding UTF8
-          $msbuildNs = "http://schemas.microsoft.com/developer/msbuild/2003"
-          foreach ($tname in @("MarkupCompilePass2", "_MarkupCompilePass2ForMainAssembly",
-                               "GenerateTemporaryTargetAssembly")) {
-            $t = $wpf.CreateElement("Target", $msbuildNs)
-            $t.SetAttribute("Name", $tname)
-            $wpf.Project.AppendChild($t) | Out-Null
-            Write-Host "已添加空 Target 覆盖: $tname"
-          }
-          $wpf.Save((Resolve-Path $wpfCsproj).Path)
+          # ── WpfApp1.csproj：用字符串替换注入空 Target 覆盖 ───────────
+          # XML DOM 追加会带 namespace 前缀导致 MSBuild 忽略，改用文本替换。
+          $wpfCsproj = Resolve-Path "WpfApp1\WpfApp1.csproj"
+          $src = [IO.File]::ReadAllText($wpfCsproj, [Text.Encoding]::UTF8)
+          $inject = "  <Target Name=""MarkupCompilePass2"" />`r`n" +
+                    "  <Target Name=""_MarkupCompilePass2ForMainAssembly"" />`r`n" +
+                    "  <Target Name=""GenerateTemporaryTargetAssembly"" />`r`n"
+          $src = $src.Replace("</Project>", $inject + "</Project>")
+          [IO.File]::WriteAllText($wpfCsproj, $src, [Text.Encoding]::UTF8)
+          Write-Host "=== WpfApp1.csproj 末尾验证 ==="
+          Get-Content $wpfCsproj | Select-Object -Last 12 | ForEach-Object { Write-Host $_ }
 
       # 启用 .NET Framework 3.5（AForge 等旧库依赖 System.Core 3.5，
       # WPF XAML 编译器加载推导依赖时需要它；Windows Server 2022 默认未启用）
@@ -124,6 +119,14 @@ jobs:
                        -find "MSBuild\**\Bin\amd64\MSBuild.exe" | Select-Object -First 1
           Write-Host "Using MSBuild: $msbuild"
           & $msbuild VMSdkStubs\VMSdkStubs.csproj /p:Configuration=Debug /nologo /verbosity:minimal
+
+      # 诊断：打印 WinFx.targets 第 260-280 行，确认出错的 Target 名称
+      - name: Diagnose WinFx.targets line 268
+        shell: pwsh
+        run: |
+          $f = "C:\Windows\Microsoft.NET\Framework\v4.0.30319\Microsoft.WinFx.targets"
+          Write-Host "=== WinFx.targets L260-280 ==="
+          Get-Content $f | Select-Object -Skip 259 -First 21 | ForEach-Object { Write-Host $_ }
 
       # BuildingForCI=true  → 使用 VMSdkStubs 替代真实 VM SDK
       # CILibPath           → log4net / HslCommunication 所在目录
