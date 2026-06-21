@@ -263,24 +263,32 @@ namespace WpfApp1.ViewModel
 
                 // 同步执行，等待流程完成
                 // WaitRun 返回 0 表示成功，非 0 为错误码
+                LogHelper.Log.Debug($"[VM] 开始执行流程[{procName}] 超时={_config.VMRunTimeout}ms");
+                var vmSw = System.Diagnostics.Stopwatch.StartNew();
                 int errCode = proc.WaitRun(_config.VMRunTimeout);
+                vmSw.Stop();
+                LogHelper.Log.Debug($"[VM] 流程[{procName}]执行完毕 耗时:{vmSw.ElapsedMilliseconds}ms 错误码:{errCode}");
+
                 if (errCode != 0)
-                    LogHelper.Log.Warn($"VM流程[{procName}]返回错误码: {errCode}");
+                    LogHelper.Log.Warn($"[VM] 流程[{procName}]返回非零错误码: {errCode}");
 
                 // 读取全局变量模块
-                // 模块名称需与 VM 方案编辑器中"全局变量"模块的【名称】一致
                 var gvModName = _config.VMGlobalVarModuleName;
+                LogHelper.Log.Debug($"[VM] 读取全局变量模块[{gvModName}]");
                 var gvMod = proc.GetModule(gvModName) as IMVSGlobalVariableModuCs;
                 if (gvMod == null)
                 {
-                    LogHelper.Log.Warn($"找不到全局变量模块[{gvModName}]，默认OK");
+                    LogHelper.Log.Warn($"[VM] 找不到全局变量模块[{gvModName}]，请确认VM方案中该模块的名称，默认返回OK");
                     return true;
                 }
 
-                // 读取检测结果：1=OK，2=NG（与 VM 方案中变量定义一致）
                 int result = gvMod.GetIntValue(_config.VMResultVarName);
+                LogHelper.Log.Debug($"[VM] 读取变量[{_config.VMResultVarName}] = {result}");
                 try { defectInfo = gvMod.GetStringValue(_config.VMDefectVarName); }
                 catch { defectInfo = ""; }
+
+                if (!string.IsNullOrEmpty(defectInfo))
+                    LogHelper.Log.Debug($"[VM] 缺陷信息[{_config.VMDefectVarName}] = {defectInfo}");
 
                 return result == 1;
             }
@@ -354,13 +362,17 @@ namespace WpfApp1.ViewModel
             {
                 DisconnectPLC();
                 var cfg = _config;
+                LogHelper.Log.Info($"正在连接PLC [{cfg.PLCType}] {cfg.PLCIp}:{cfg.PLCPort} ...");
                 if (cfg.PLCType == "S7")
                 {
                     _s7Client = new SiemensS7Net(SiemensPLCS.S1200, cfg.PLCIp);
                     _s7Client.Port = cfg.PLCPort;
                     var r = _s7Client.ConnectServer();
                     _plcConnected = r.IsSuccess;
-                    if (!r.IsSuccess) LogHelper.Log.Error($"S7 PLC连接失败: {r.Message}");
+                    if (r.IsSuccess)
+                        LogHelper.Log.Info($"S7 PLC连接成功 {cfg.PLCIp}:{cfg.PLCPort}");
+                    else
+                        LogHelper.Log.Error($"S7 PLC连接失败: {r.Message} (IP={cfg.PLCIp} Port={cfg.PLCPort})");
                 }
                 else if (cfg.PLCType == "Fins")
                 {
@@ -368,13 +380,16 @@ namespace WpfApp1.ViewModel
                     _finsClient.Port = cfg.PLCPort;
                     var r = _finsClient.ConnectServer();
                     _plcConnected = r.IsSuccess;
-                    if (!r.IsSuccess) LogHelper.Log.Error($"Fins PLC连接失败: {r.Message}");
+                    if (r.IsSuccess)
+                        LogHelper.Log.Info($"Fins PLC连接成功 {cfg.PLCIp}:{cfg.PLCPort}");
+                    else
+                        LogHelper.Log.Error($"Fins PLC连接失败: {r.Message} (IP={cfg.PLCIp} Port={cfg.PLCPort})");
                 }
                 return _plcConnected;
             }
             catch (Exception ex)
             {
-                LogHelper.Log.Error("PLC连接异常", ex);
+                LogHelper.Log.Error($"PLC连接异常 [{_config.PLCType}] {_config.PLCIp}:{_config.PLCPort}", ex);
                 _plcConnected = false;
                 return false;
             }
@@ -442,23 +457,46 @@ namespace WpfApp1.ViewModel
             if (_isRunning) return;
 
             StatusText = "正在启动...";
+            LogHelper.Log.Info("========== 开始启动检测 ==========");
+            LogHelper.Log.Info($"  型号:        {ModelNo}");
+            LogHelper.Log.Info($"  批次:        {EditBatchNo}");
+            LogHelper.Log.Info($"  PLC类型:     {_config.PLCType}");
+            LogHelper.Log.Info($"  PLC地址:     {_config.PLCIp}:{_config.PLCPort}");
+            LogHelper.Log.Info($"  VM方案路径:  {_config.SolutionPath}");
+            LogHelper.Log.Info($"  VM超时(ms):  {_config.VMRunTimeout}");
+            LogHelper.Log.Info($"  VM流程前缀:  {_config.VMProcedurePrefix}");
+            LogHelper.Log.Info($"  VM全局变量模块: {_config.VMGlobalVarModuleName}");
+            LogHelper.Log.Info($"  VM结果变量:  {_config.VMResultVarName}");
+            LogHelper.Log.Info($"  存图路径:    {_config.SaveImagePath}");
+            LogHelper.Log.Info($"  存OK图:      {_config.SaveOK} | 存NG图: {_config.SaveNG}");
+            for (int i = 0; i < _config.Cameras.Count; i++)
+            {
+                var c = _config.Cameras[i];
+                LogHelper.Log.Info($"  Cam{i + 1}[{c.StationName}]: 在线={c.IsOnline} 旋转={c.IsRotation} " +
+                    $"First={c.FirstAddr} Start={c.StartAddr} Result={c.ResultAddr} " +
+                    $"拍照数={c.TotalShots} 间隔={c.ShotInterval}ms VM流程={c.VMProcedureName}");
+            }
 
-            // Connect PLC
             if (!ConnectPLC())
             {
                 StatusText = "PLC连接失败，请检查网络配置";
+                LogHelper.Log.Error("【启动中止】PLC连接失败");
                 return;
             }
 
-            // Load VM solution
             if (!string.IsNullOrEmpty(_config.SolutionPath))
             {
                 if (!LoadVMSolution(_config.SolutionPath))
                 {
                     StatusText = "VM方案加载失败，请检查方案路径";
+                    LogHelper.Log.Error("【启动中止】VM方案加载失败");
                     DisconnectPLC();
                     return;
                 }
+            }
+            else
+            {
+                LogHelper.Log.Warn("未配置VM方案路径，跳过VM加载（所有检测将默认返回OK）");
             }
 
             IsRunning = true;
@@ -469,12 +507,13 @@ namespace WpfApp1.ViewModel
             _plcPollingThread = new Thread(PLCPollingLoop) { IsBackground = true, Name = "PLCPolling" };
             _plcPollingThread.Start();
 
-            LogHelper.Log.Info($"检测启动 型号:{ModelNo} 批次:{CurrentBatchNo}");
+            LogHelper.Log.Info($"========== 检测已启动 型号:{ModelNo} 批次:{CurrentBatchNo} ==========");
         }
 
         public void Stop()
         {
             if (!_isRunning) return;
+            LogHelper.Log.Info("========== 停止检测 ==========");
             IsRunning = false;
             IsConnected = false;
             StatusText = "停止中...";
@@ -485,7 +524,7 @@ namespace WpfApp1.ViewModel
             StopVMSolution();
             DisconnectPLC();
             StatusText = "已停止";
-            LogHelper.Log.Info("检测停止");
+            LogHelper.Log.Info($"========== 检测已停止 | 总数:{ResultVM.TotalCount} OK:{ResultVM.OKCount} NG:{ResultVM.NGCount} ==========");
         }
 
         private void PLCPollingLoop()
@@ -522,34 +561,36 @@ namespace WpfApp1.ViewModel
                         bool firstNow = ReadBool(camCfg.FirstAddr);
                         if (firstNow && !prevFirstSignal[i])
                         {
-                            // 防止重入
                             if (_isDetecting) { prevFirstSignal[i] = firstNow; continue; }
                             _isDetecting = true;
 
-                            // 回写Start信号
+                            var sw = System.Diagnostics.Stopwatch.StartNew();
+                            LogHelper.Log.Info($"[Cam{i + 1}|{camCfg.StationName}] First信号上升沿，开始检测");
+
                             WriteBool(camCfg.StartAddr, true);
+                            LogHelper.Log.Debug($"[Cam{i + 1}] 已回写Start信号 → {camCfg.StartAddr}");
                             Application.Current?.Dispatcher.Invoke(() => Cameras[i].IsDetecting = true);
 
                             bool isOk = TriggerVMCamera(i, out string defectInfo);
+                            LogHelper.Log.Info($"[Cam{i + 1}] VM检测完成 耗时:{sw.ElapsedMilliseconds}ms | 结果:{(isOk ? "OK" : "NG")} | 缺陷:{(string.IsNullOrEmpty(defectInfo) ? "无" : defectInfo)}");
 
-                            // 延时读取（等待图像采集）
                             if (camCfg.ShotInterval > 0)
                                 Thread.Sleep(camCfg.ShotInterval);
 
-                            // 写检测结果到PLC
                             WriteShort(camCfg.ResultAddr, isOk ? (short)1 : (short)2);
+                            LogHelper.Log.Debug($"[Cam{i + 1}] 已写结果到PLC → {camCfg.ResultAddr} = {(isOk ? 1 : 2)}");
 
-                            // 取 VM 图像（TriggerVMCamera 执行后立即取，此时 VM 模块输出有效）
                             BitmapSource displayImg = GetVMCameraImage(i);
 
-                            // 更新UI
                             Cameras[i].SetResult(isOk, displayImg, "", defectInfo);
                             ResultVM.AddResult(isOk);
                             UpdatePLCStats();
 
-                            // 存图
                             if ((isOk && _config.SaveOK) || (!isOk && _config.SaveNG))
                                 SaveImage(i, isOk, defectInfo);
+
+                            sw.Stop();
+                            LogHelper.Log.Info($"[Cam{i + 1}] 本次检测全程耗时:{sw.ElapsedMilliseconds}ms | 累计 总:{Cameras[i].TotalCount} OK:{Cameras[i].OKCount} NG:{Cameras[i].NGCount}");
 
                             Application.Current?.Dispatcher.Invoke(() => Cameras[i].IsDetecting = false);
                             _isDetecting = false;
@@ -574,11 +615,13 @@ namespace WpfApp1.ViewModel
             if (!_isRunning || _isDetecting) return;
             if (camIndex < 0 || camIndex >= 6) return;
 
+            LogHelper.Log.Info($"[Cam{camIndex + 1}] 手动触发检测");
             ThreadPool.QueueUserWorkItem(_ =>
             {
                 _isDetecting = true;
                 Application.Current?.Dispatcher.Invoke(() => Cameras[camIndex].IsDetecting = true);
                 bool isOk = TriggerVMCamera(camIndex, out string defectInfo);
+                LogHelper.Log.Info($"[Cam{camIndex + 1}] 手动触发结果: {(isOk ? "OK" : "NG")} 缺陷:{(string.IsNullOrEmpty(defectInfo) ? "无" : defectInfo)}");
                 BitmapSource img = GetVMCameraImage(camIndex);
                 Cameras[camIndex].SetResult(isOk, img, "", defectInfo);
                 Application.Current?.Dispatcher.Invoke(() => Cameras[camIndex].IsDetecting = false);
@@ -616,6 +659,11 @@ namespace WpfApp1.ViewModel
                 {
                     using (bmp)
                         bmp.Save(fullPath, ImageFormat.Jpeg);
+                    LogHelper.Log.Debug($"[Cam{camIndex + 1}] 图像已保存: {fullPath}");
+                }
+                else
+                {
+                    LogHelper.Log.Warn($"[Cam{camIndex + 1}] 未能从VM获取图像，跳过存图");
                 }
 
                 CleanOldImages(basePath, _config.SaveDays);

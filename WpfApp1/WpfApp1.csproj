@@ -125,6 +125,13 @@
     </ProjectReference>
   </ItemGroup>
 
+  <!-- 配置文件 -->
+  <ItemGroup>
+    <Content Include="log4net.config">
+      <CopyToOutputDirectory>Always</CopyToOutputDirectory>
+    </Content>
+  </ItemGroup>
+
   <!-- 源文件 -->
   <ItemGroup>
     <ApplicationDefinition Include="App.xaml">
