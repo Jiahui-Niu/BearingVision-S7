@@ -86,6 +86,14 @@ jobs:
 
           $xml.Save((Resolve-Path $csproj).Path)
 
+      # 启用 .NET Framework 3.5（AForge 等旧库依赖 System.Core 3.5，
+      # WPF XAML 编译器加载推导依赖时需要它；Windows Server 2022 默认未启用）
+      - name: Enable .NET Framework 3.5
+        shell: pwsh
+        run: |
+          dism.exe /online /enable-feature /featurename:NetFx3 /All /NoRestart
+          Write-Host ".NET Framework 3.5 已启用"
+
       # 安装 .NET Framework 4.6.1 Targeting Pack（windows-latest 默认不含）
       - name: Install .NET Framework 4.6.1 Developer Pack
         run: choco install netfx-4.6.1-devpack --yes --no-progress
