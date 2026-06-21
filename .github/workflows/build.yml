@@ -88,12 +88,15 @@ jobs:
 
           # ── WpfApp1.csproj：用字符串替换注入空 Target 覆盖 ───────────
           # XML DOM 追加会带 namespace 前缀导致 MSBuild 忽略，改用文本替换。
+          # Replace 会替换所有 </Project>（包括 <ProjectReference> 里的 <Project>GUID</Project>）
+          # 改用 LastIndexOf 只替换文件最末尾那一个根关闭标签
           $wpfCsproj = Resolve-Path "WpfApp1\WpfApp1.csproj"
           $src = [IO.File]::ReadAllText($wpfCsproj, [Text.Encoding]::UTF8)
           $inject = "  <Target Name=""MarkupCompilePass2"" />`r`n" +
                     "  <Target Name=""_MarkupCompilePass2ForMainAssembly"" />`r`n" +
                     "  <Target Name=""GenerateTemporaryTargetAssembly"" />`r`n"
-          $src = $src.Replace("</Project>", $inject + "</Project>")
+          $idx = $src.LastIndexOf("</Project>")
+          $src = $src.Substring(0, $idx) + $inject + "</Project>"
           [IO.File]::WriteAllText($wpfCsproj, $src, [Text.Encoding]::UTF8)
           Write-Host "=== WpfApp1.csproj 末尾验证 ==="
           Get-Content $wpfCsproj | Select-Object -Last 12 | ForEach-Object { Write-Host $_ }
