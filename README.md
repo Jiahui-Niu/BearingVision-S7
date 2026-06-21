@@ -25,13 +25,14 @@
 
 ```
 BearingVision-S7/
-├── 成品轴承外观机.sln       # Visual Studio 解决方案
-├── WpfApp1/                 # 主程序（WPF 界面 + 核心逻辑）
-├── ICPlatformTools/         # 内部工具类库（SQLite / 日志 / 网络等）
-├── PhotometricStereo/       # 光度立体算法库
-├── VMSdkStubs/              # CI 编译用 VM SDK 桩（不用于生产）
-├── 参考资料/                # 界面截图 / 操作手册
-└── .github/workflows/       # GitHub Actions 自动编译
+├── 成品轴承外观机.sln                   # Visual Studio 解决方案
+├── WpfApp1/                             # 主程序（WPF 界面 + 核心逻辑）
+│   └── XamlGeneratedStubs.ci.cs        # CI 专用：替代 XAML 编译器生成的代码
+├── ICPlatformTools/                     # 内部工具类库（SQLite / 日志 / 网络等）
+├── PhotometricStereo/                   # 光度立体算法库
+├── VMSdkStubs/                          # CI 编译用桩（VM SDK + HslCommunication）
+├── 参考资料/                            # 界面截图 / 操作手册
+└── .github/workflows/                   # GitHub Actions 自动编译
 ```
 
 ---
@@ -103,7 +104,15 @@ git clone git@github.com:Jiahui-Niu/BearingVision-S7.git
 
 每次 push 到 `main` 分支，GitHub Actions 自动在 Windows 云服务器上编译并上传 `WpfSurface.exe`。
 
-> CI 使用 VM SDK 桩（VMSdkStubs）替代真实 VisionMaster SDK，  
-> 可验证 C# / XAML 语法正确性，但无法验证 VM 运行时行为。
-
 [![Build](https://github.com/Jiahui-Niu/BearingVision-S7/actions/workflows/build.yml/badge.svg)](https://github.com/Jiahui-Niu/BearingVision-S7/actions/workflows/build.yml)
+
+### CI 与生产编译的差异
+
+| 项目 | 生产（本地 VS） | CI（GitHub Actions） |
+|------|----------------|----------------------|
+| VM SDK | VisionMaster 4.4.3 安装目录 | `VMSdkStubs` 桩 DLL |
+| HslCommunication | `bin\x64\Debug\` 手动放置 | `VMSdkStubs` 桩类型 |
+| log4net | VM 安装目录 | NuGet 2.0.15 |
+| XAML 编译 | mc.exe 完整编译 | 跳过，由 `XamlGeneratedStubs.ci.cs` 提供桩代码 |
+
+CI 可验证 C# 语法和引用正确性，但无法验证 VisionMaster 运行时行为。编译产物可以生成但不能直接运行（缺少 VM SDK 和相机驱动）。
