@@ -686,7 +686,7 @@
       <HintPath>Dll\FluentFTP.dll</HintPath>
     </Reference>
     <Reference Include="log4Net">
-      <HintPath>C:\Program Files\VisionMaster4.3.0\Development\V4.x\ComControls\Assembly\log4Net.dll</HintPath>
+      <HintPath>C:\Program Files\VisionMaster4.4.0\MVDAlgorithmSDK\ReferencedAssemblies\VMControls\log4net.dll</HintPath>
     </Reference>
     <Reference Include="NAudio">
       <HintPath>Dll\NAudio.dll</HintPath>
