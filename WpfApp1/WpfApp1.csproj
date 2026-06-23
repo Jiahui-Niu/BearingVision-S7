@@ -50,51 +50,51 @@
   <!-- 生产环境：真实 VM SDK（VisionMaster 4.4.0 安装路径） -->
   <ItemGroup Condition="'$(BuildingForCI)' != 'true'">
     <Reference Include="VM.Core">
-      <HintPath>C:\Program Files\VisionMaster4.4.0\Development\V4.x\ComControls\Assembly\VM.Core.dll</HintPath>
+      <HintPath>C:\Program Files\VisionMaster4.4.30\Development\V4.x\ComControls\Assembly\VM.Core.dll</HintPath>
       <Private>False</Private>
     </Reference>
     <Reference Include="VM.PlatformSDKCS">
-      <HintPath>C:\Program Files\VisionMaster4.4.0\Development\V4.x\ComControls\Assembly\VM.PlatformSDKCS.dll</HintPath>
+      <HintPath>C:\Program Files\VisionMaster4.4.30\Development\V4.x\ComControls\Assembly\VM.PlatformSDKCS.dll</HintPath>
       <Private>False</Private>
     </Reference>
     <Reference Include="VMControls.BaseInterface">
-      <HintPath>C:\Program Files\VisionMaster4.4.0\Development\V4.x\ComControls\Assembly\VMControls.BaseInterface.dll</HintPath>
+      <HintPath>C:\Program Files\VisionMaster4.4.30\Development\V4.x\ComControls\Assembly\VMControls.BaseInterface.dll</HintPath>
       <Private>False</Private>
     </Reference>
     <Reference Include="VMControls.WPF.Release">
-      <HintPath>C:\Program Files\VisionMaster4.4.0\Development\V4.x\ComControls\Assembly\VMControls.WPF.Release.dll</HintPath>
+      <HintPath>C:\Program Files\VisionMaster4.4.30\Development\V4.x\ComControls\Assembly\VMControls.WPF.Release.dll</HintPath>
       <Private>False</Private>
     </Reference>
     <Reference Include="VMControls.Interface">
-      <HintPath>C:\Program Files\VisionMaster4.4.0\Development\V4.x\ComControls\Assembly\VMControls.Interface.dll</HintPath>
+      <HintPath>C:\Program Files\VisionMaster4.4.30\Development\V4.x\ComControls\Assembly\VMControls.Interface.dll</HintPath>
       <Private>False</Private>
     </Reference>
     <Reference Include="GlobalVariableModuleCs">
-      <HintPath>C:\Program Files\VisionMaster4.4.0\Development\V4.x\ComControls\Assembly\GlobalVariableModuleCs.dll</HintPath>
+      <HintPath>C:\Program Files\VisionMaster4.4.30\Development\V4.x\ComControls\Assembly\GlobalVariableModuleCs.dll</HintPath>
       <Private>False</Private>
     </Reference>
     <Reference Include="ImageCollectModuCs">
-      <HintPath>C:\Program Files\VisionMaster4.4.0\Development\V4.x\ComControls\Assembly\ImageCollectModuCs.dll</HintPath>
+      <HintPath>C:\Program Files\VisionMaster4.4.30\Development\V4.x\ComControls\Assembly\ImageCollectModuCs.dll</HintPath>
       <Private>False</Private>
     </Reference>
     <Reference Include="SinglePointGrabModuCs">
-      <HintPath>C:\Program Files\VisionMaster4.4.0\Development\V4.x\ComControls\Assembly\SinglePointGrabModuCs.dll</HintPath>
+      <HintPath>C:\Program Files\VisionMaster4.4.30\Development\V4.x\ComControls\Assembly\SinglePointGrabModuCs.dll</HintPath>
       <Private>False</Private>
     </Reference>
     <Reference Include="LightModuleCs">
-      <HintPath>C:\Program Files\VisionMaster4.4.0\Development\V4.x\ComControls\Assembly\LightModuleCs.dll</HintPath>
+      <HintPath>C:\Program Files\VisionMaster4.4.30\Development\V4.x\ComControls\Assembly\LightModuleCs.dll</HintPath>
       <Private>False</Private>
     </Reference>
     <Reference Include="LightControlCs">
-      <HintPath>C:\Program Files\VisionMaster4.4.0\Development\V4.x\ComControls\Assembly\LightControlCs.dll</HintPath>
+      <HintPath>C:\Program Files\VisionMaster4.4.30\Development\V4.x\ComControls\Assembly\LightControlCs.dll</HintPath>
       <Private>False</Private>
     </Reference>
     <Reference Include="CommManagerModuleCs">
-      <HintPath>C:\Program Files\VisionMaster4.4.0\Development\V4.x\ComControls\Assembly\CommManagerModuleCs.dll</HintPath>
+      <HintPath>C:\Program Files\VisionMaster4.4.30\Development\V4.x\ComControls\Assembly\CommManagerModuleCs.dll</HintPath>
       <Private>False</Private>
     </Reference>
     <Reference Include="log4Net">
-      <HintPath>C:\Program Files\VisionMaster4.4.0\MVDAlgorithmSDK\ReferencedAssemblies\VMControls\log4net.dll</HintPath>
+      <HintPath>C:\Program Files\VisionMaster4.4.30\MVDAlgorithmSDK\ReferencedAssemblies\VMControls\log4net.dll</HintPath>
       <Private>False</Private>
     </Reference>
     <Reference Include="HslCommunication">
