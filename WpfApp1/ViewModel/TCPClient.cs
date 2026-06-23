@@ -67,7 +67,7 @@ namespace WpfApp1.ViewModel
                     }
                     else if (PLCType == "Fins")
                     {
-                        _finsClient = new OmronFinsNet(IP);
+                        _finsClient = new OmronFinsNet(IP, 9600);
                         _finsClient.Port = Port;
                         var result = _finsClient.ConnectServer();
                         IsConnected = result.IsSuccess;
