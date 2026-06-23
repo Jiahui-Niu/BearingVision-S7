@@ -47,43 +47,50 @@
     <ErrorReport>prompt</ErrorReport>
   </PropertyGroup>
 
-  <!-- 生产环境：真实 VM SDK（需安装 VisionMaster 4.4.3） -->
+  <!-- 生产环境：真实 VM SDK（VisionMaster 4.4.0 安装路径） -->
   <ItemGroup Condition="'$(BuildingForCI)' != 'true'">
-    <Reference Include="VM.Core, Version=1.0.0.0, Culture=neutral, PublicKeyToken=61600122bc9264b9, processorArchitecture=MSIL">
+    <Reference Include="VM.Core">
+      <HintPath>C:\Program Files\VisionMaster4.4.0\Development\V4.x\ComControls\Assembly\VM.Core.dll</HintPath>
       <Private>False</Private>
     </Reference>
-    <Reference Include="VM.PlatformSDKCS, Version=1.0.0.0, Culture=neutral, PublicKeyToken=c1484a72052ee3d4, processorArchitecture=MSIL">
+    <Reference Include="VM.PlatformSDKCS">
+      <HintPath>C:\Program Files\VisionMaster4.4.0\Development\V4.x\ComControls\Assembly\VM.PlatformSDKCS.dll</HintPath>
       <Private>False</Private>
     </Reference>
-    <Reference Include="VMControls.BaseInterface, Version=1.0.0.0, Culture=neutral, PublicKeyToken=14444b8df74b6e6a, processorArchitecture=MSIL">
+    <Reference Include="VMControls.BaseInterface">
+      <HintPath>C:\Program Files\VisionMaster4.4.0\Development\V4.x\ComControls\Assembly\VMControls.BaseInterface.dll</HintPath>
       <Private>False</Private>
     </Reference>
-    <Reference Include="VMControls.WPF.Release, Version=1.0.0.0, Culture=neutral, PublicKeyToken=fdd2c8be7291c30c, processorArchitecture=MSIL">
+    <Reference Include="VMControls.WPF.Release">
+      <HintPath>C:\Program Files\VisionMaster4.4.0\Development\V4.x\ComControls\Assembly\VMControls.WPF.Release.dll</HintPath>
       <Private>False</Private>
     </Reference>
-    <Reference Include="VMControls.Interface, Version=1.0.0.0, Culture=neutral, PublicKeyToken=cb41614600cf774b, processorArchitecture=MSIL">
+    <Reference Include="VMControls.Interface">
+      <HintPath>C:\Program Files\VisionMaster4.4.0\Development\V4.x\ComControls\Assembly\VMControls.Interface.dll</HintPath>
       <Private>False</Private>
     </Reference>
-    <Reference Include="GlobalVariableModuleCs, Version=1.0.0.0, Culture=neutral, PublicKeyToken=df9beaf7c020f858, processorArchitecture=MSIL">
+    <Reference Include="GlobalVariableModuleCs">
+      <HintPath>C:\Program Files\VisionMaster4.4.0\Development\V4.x\ComControls\Assembly\GlobalVariableModuleCs.dll</HintPath>
       <Private>False</Private>
     </Reference>
-    <Reference Include="ImageCollectModuCs, Version=1.0.0.0, Culture=neutral, PublicKeyToken=1456d47d4d035431, processorArchitecture=MSIL">
+    <Reference Include="ImageCollectModuCs">
+      <HintPath>C:\Program Files\VisionMaster4.4.0\Development\V4.x\ComControls\Assembly\ImageCollectModuCs.dll</HintPath>
       <Private>False</Private>
     </Reference>
-    <Reference Include="SinglePointGrabModuCs, Version=1.0.0.0, Culture=neutral, PublicKeyToken=fb4f07aaff38d00b, processorArchitecture=MSIL">
+    <Reference Include="SinglePointGrabModuCs">
+      <HintPath>C:\Program Files\VisionMaster4.4.0\Development\V4.x\ComControls\Assembly\SinglePointGrabModuCs.dll</HintPath>
       <Private>False</Private>
     </Reference>
-    <Reference Include="LightModuleCs, Version=1.0.0.0, Culture=neutral, PublicKeyToken=1fb84aefb2e60473, processorArchitecture=MSIL">
+    <Reference Include="LightModuleCs">
+      <HintPath>C:\Program Files\VisionMaster4.4.0\Development\V4.x\ComControls\Assembly\LightModuleCs.dll</HintPath>
       <Private>False</Private>
     </Reference>
-    <Reference Include="LightControlCs, Version=1.0.0.0, Culture=neutral, PublicKeyToken=d708150847bf22aa, processorArchitecture=MSIL">
+    <Reference Include="LightControlCs">
+      <HintPath>C:\Program Files\VisionMaster4.4.0\Development\V4.x\ComControls\Assembly\LightControlCs.dll</HintPath>
       <Private>False</Private>
     </Reference>
-    <Reference Include="CommManagerModuleCs, Version=1.0.0.0, Culture=neutral, PublicKeyToken=17913397e05a26ba, processorArchitecture=MSIL">
-      <Private>False</Private>
-    </Reference>
-    <Reference Include="log4Net">
-      <HintPath>C:\Program Files\VisionMaster4.4.3\Development\V4.x\ComControls\Assembly\log4Net.dll</HintPath>
+    <Reference Include="CommManagerModuleCs">
+      <HintPath>C:\Program Files\VisionMaster4.4.0\Development\V4.x\ComControls\Assembly\CommManagerModuleCs.dll</HintPath>
       <Private>False</Private>
     </Reference>
     <Reference Include="HslCommunication">
