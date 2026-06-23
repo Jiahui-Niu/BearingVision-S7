@@ -226,7 +226,7 @@ namespace WpfApp1.ViewModel
 
         private void StopVMSolution()
         {
-            try { _vmSolution?.StopAllModules(); }
+            try { _vmSolution?.CloseSolution(); }
             catch (Exception ex) { LogHelper.Log.Error("VM方案停止失败", ex); }
         }
 
