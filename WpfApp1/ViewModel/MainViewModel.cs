@@ -15,8 +15,6 @@ using ICPlatformTools;
 
 // VM SDK — 需安装 VisionMaster 4.4.3
 using VM.Core;
-using GlobalVariableModuleCs;   // IMVSGlobalVariableModuCs
-using ImageCollectModuCs;        // IImageCollectModuCs
 
 namespace WpfApp1.ViewModel
 {
@@ -254,7 +252,7 @@ namespace WpfApp1.ViewModel
             try
             {
                 var procName = GetVMProcedureName(camIndex);
-                var proc = _vmSolution[procName];
+                dynamic proc = _vmSolution[procName];
                 if (proc == null)
                 {
                     LogHelper.Log.Warn($"VM流程不存在: {procName}，默认OK");
@@ -275,7 +273,7 @@ namespace WpfApp1.ViewModel
                 // 读取全局变量模块
                 var gvModName = _config.VMGlobalVarModuleName;
                 LogHelper.Log.Debug($"[VM] 读取全局变量模块[{gvModName}]");
-                var gvMod = proc.GetModule(gvModName) as IMVSGlobalVariableModuCs;
+                dynamic gvMod = proc.GetModule(gvModName);
                 if (gvMod == null)
                 {
                     LogHelper.Log.Warn($"[VM] 找不到全局变量模块[{gvModName}]，请确认VM方案中该模块的名称，默认返回OK");
@@ -310,12 +308,12 @@ namespace WpfApp1.ViewModel
             try
             {
                 var procName = GetVMProcedureName(camIndex);
-                var proc = _vmSolution[procName];
+                dynamic proc = _vmSolution[procName];
                 if (proc == null) return null;
 
                 // 模块名称需与 VM 方案中图像采集模块的【名称】一致
                 var imgModName = _config.VMImageModuleName;
-                var imgMod = proc.GetModule(imgModName) as IImageCollectModuCs;
+                dynamic imgMod = proc.GetModule(imgModName);
                 if (imgMod == null) return null;
 
                 // VM 4.4.3 SDK：从图像采集模块取输出图像并转换为 Bitmap
@@ -682,10 +680,10 @@ namespace WpfApp1.ViewModel
             if (!_vmLoaded || _vmSolution == null) return null;
             try
             {
-                var proc = _vmSolution.GetProcedure(GetVMProcedureName(camIndex));
+                dynamic proc = _vmSolution[GetVMProcedureName(camIndex)];
                 if (proc == null) return null;
 
-                var imgMod = proc.GetModule(_config.VMImageModuleName) as IImageCollectModuCs;
+                dynamic imgMod = proc.GetModule(_config.VMImageModuleName);
                 return imgMod?.GetOutputImage()?.ToBitmap();
             }
             catch (Exception ex)
