@@ -25,7 +25,7 @@
 
 ```
 BearingVision-S7/
-├── 成品轴承外观机.sln                   # Visual Studio 解决方案
+├── BearingVision-S7.sln                 # Visual Studio 解决方案
 ├── WpfApp1/                             # 主程序（WPF 界面 + 核心逻辑）
 │   └── XamlGeneratedStubs.ci.cs        # CI 专用：替代 XAML 编译器生成的代码
 ├── ICPlatformTools/                     # 内部工具类库（SQLite / 日志 / 网络等）
@@ -82,7 +82,7 @@ Result 值：`1 = OK`，`2 = NG`（Int16）
 # 2. 将 HslCommunication.dll 放入 WpfApp1\bin\x64\Debug\
 # 3. 用 Visual Studio 2022 打开解决方案
 git clone git@github.com:Jiahui-Niu/BearingVision-S7.git
-# 用 VS 打开 成品轴承外观机.sln → 选 Release|x64 → 生成
+# 用 VS 打开 BearingVision-S7.sln → 选 Release|x64 → 生成
 ```
 
 ---
