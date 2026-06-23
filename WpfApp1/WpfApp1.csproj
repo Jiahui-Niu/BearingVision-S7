@@ -124,6 +124,7 @@
     <Reference Include="PresentationFramework" />
     <Reference Include="WindowsBase" />
     <Reference Include="WindowsFormsIntegration" />
+    <Reference Include="System.Xaml" />
   </ItemGroup>
 
   <!-- 项目引用 -->
