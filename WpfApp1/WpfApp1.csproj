@@ -117,6 +117,12 @@
 
   <ItemGroup>
 
+    <!-- System.ValueTuple（.NET 4.6.1 元组语法需要） -->
+    <Reference Include="System.ValueTuple">
+      <HintPath>..\packages\System.ValueTuple.4.6.2\lib\net461\System.ValueTuple.dll</HintPath>
+      <Private>True</Private>
+    </Reference>
+
     <!-- Newtonsoft.Json -->
     <Reference Include="Newtonsoft.Json">
       <HintPath>..\ICPlatformTools\Dll\Newtonsoft.Json.dll</HintPath>
