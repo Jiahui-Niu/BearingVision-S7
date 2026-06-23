@@ -58,7 +58,7 @@ namespace VM.Core
     {
         private static readonly VmSolution _instance = new VmSolution();
         public static VmSolution Instance => _instance;
-        public void Load(string path) { }
+        public static void Load(string path, string password, bool autoRun) { }
         public void CloseSolution() { }
         public VmIndependentProcedure GetProcedure(string procedureName) => null;
         public VmIndependentProcedure this[string name] => null;

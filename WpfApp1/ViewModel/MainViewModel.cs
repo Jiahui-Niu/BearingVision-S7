@@ -210,8 +210,8 @@ namespace WpfApp1.ViewModel
                     _vmSolution = null;
                 }
 
+                VmSolution.Load(path, "", false);
                 _vmSolution = VmSolution.Instance;
-                _vmSolution.Load(path);
                 _vmLoaded = true;
                 LogHelper.Log.Info($"VM方案加载成功: {path}");
                 return true;
@@ -254,7 +254,7 @@ namespace WpfApp1.ViewModel
             try
             {
                 var procName = GetVMProcedureName(camIndex);
-                var proc = _vmSolution.GetProcedure(procName);
+                var proc = _vmSolution[procName];
                 if (proc == null)
                 {
                     LogHelper.Log.Warn($"VM流程不存在: {procName}，默认OK");
@@ -310,7 +310,7 @@ namespace WpfApp1.ViewModel
             try
             {
                 var procName = GetVMProcedureName(camIndex);
-                var proc = _vmSolution.GetProcedure(procName);
+                var proc = _vmSolution[procName];
                 if (proc == null) return null;
 
                 // 模块名称需与 VM 方案中图像采集模块的【名称】一致
