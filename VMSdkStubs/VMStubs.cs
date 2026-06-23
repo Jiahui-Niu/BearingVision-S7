@@ -39,7 +39,7 @@ namespace HslCommunication.Profinet.Omron
 {
     public class OmronFinsNet
     {
-        public OmronFinsNet(string ipAddress) { }
+        public OmronFinsNet(string ipAddress, int port) { }
         public int Port { get; set; }
         public HslCommunication.OperateResult ConnectServer() => new HslCommunication.OperateResult();
         public void ConnectClose() { }
@@ -54,26 +54,21 @@ namespace HslCommunication.Profinet.Omron
 
 namespace VM.Core
 {
-    public class MVisionMaster
+    public class VmSolution
     {
-        private static readonly MVisionMaster _instance = new MVisionMaster();
-        public static MVisionMaster Instance => _instance;
-        public IMVSolution Solution { get; } = null;
+        private static readonly VmSolution _instance = new VmSolution();
+        public static VmSolution Instance => _instance;
+        public void Load(string path) { }
+        public void CloseSolution() { }
+        public VmIndependentProcedure GetProcedure(string procedureName) => null;
+        public VmIndependentProcedure this[string name] => null;
     }
 
-    public interface IMVSolution
+    public class VmIndependentProcedure
     {
-        void Load(string path);
-        void DestroyAllModule();
-        void StopAllModules();
-        IMVSProcedure GetProcedure(string procedureName);
-    }
-
-    public interface IMVSProcedure
-    {
-        int WaitRun(int timeoutMs);
-        void Run();
-        object GetModule(string moduleName);
+        public int WaitRun(int timeoutMs) => 0;
+        public void Run() { }
+        public object GetModule(string moduleName) => null;
     }
 }
 

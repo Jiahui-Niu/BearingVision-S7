@@ -188,7 +188,7 @@ namespace WpfApp1.ViewModel
 
         #region VM SDK Integration
 
-        private IMVSolution _vmSolution;
+        private VmSolution _vmSolution;
         private bool _vmLoaded;
 
         [DllImport("gdi32.dll")]
@@ -206,11 +206,11 @@ namespace WpfApp1.ViewModel
 
                 if (_vmSolution != null)
                 {
-                    try { _vmSolution.DestroyAllModule(); } catch { }
+                    try { _vmSolution.CloseSolution(); } catch { }
                     _vmSolution = null;
                 }
 
-                _vmSolution = MVisionMaster.Instance.Solution;
+                _vmSolution = VmSolution.Instance;
                 _vmSolution.Load(path);
                 _vmLoaded = true;
                 LogHelper.Log.Info($"VM方案加载成功: {path}");
@@ -376,7 +376,7 @@ namespace WpfApp1.ViewModel
                 }
                 else if (cfg.PLCType == "Fins")
                 {
-                    _finsClient = new OmronFinsNet(cfg.PLCIp);
+                    _finsClient = new OmronFinsNet(cfg.PLCIp, 9600);
                     _finsClient.Port = cfg.PLCPort;
                     var r = _finsClient.ConnectServer();
                     _plcConnected = r.IsSuccess;
