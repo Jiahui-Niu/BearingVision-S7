@@ -68,8 +68,14 @@ namespace WpfApp1.ViewModel
         public bool IsOnline
         {
             get => _isOnline;
-            set => SetField(ref _isOnline, value);
+            set
+            {
+                SetField(ref _isOnline, value);
+                OnPropertyChanged(nameof(IsOffline));
+            }
         }
+
+        public bool IsOffline => !_isOnline;
 
         public bool IsDetecting
         {

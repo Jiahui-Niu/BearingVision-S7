@@ -62,7 +62,7 @@
                         </Border>
                         <!-- 离线遮罩 -->
                         <Border Background="#80333333"
-                                Visibility="{Binding IsOnline, Converter={StaticResource BoolToVis}, ConverterParameter=Invert}">
+                                Visibility="{Binding IsOffline, Converter={StaticResource BoolToVis}}">
                             <TextBlock Text="离线" Foreground="Gray" FontSize="14"
                                        HorizontalAlignment="Center" VerticalAlignment="Center"/>
                         </Border>
