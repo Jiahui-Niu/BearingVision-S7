@@ -7,7 +7,7 @@ namespace WpfApp1.Model
 {
     public class AppConfig
     {
-        public string SolutionPath { get; set; } = @"D:\Debug\Sol\成品.sol";
+        public string SolutionPath { get; set; } = "";
         public string ModelNo { get; set; } = "";
         public bool HasEnclosure { get; set; } = false;
 
@@ -26,7 +26,7 @@ namespace WpfApp1.Model
         public string ClearAddr { get; set; } = "DB85.9";
         public string DataType { get; set; } = "Int16";
 
-        public string SaveImagePath { get; set; } = @"D:\Images";
+        public string SaveImagePath { get; set; } = Path.Combine(AppDomain.CurrentDomain.BaseDirectory, "Images");
         public int SaveDays { get; set; } = 30;
         public bool SaveOK { get; set; } = true;
         public bool SaveNG { get; set; } = true;
