@@ -502,14 +502,16 @@ namespace WpfApp1.ViewModel
                 LogHelper.Log.Warn("【警告】PLC连接失败，以离线模式继续运行（PLC相关功能不可用）");
             }
 
-            if (!string.IsNullOrEmpty(_config.SolutionPath))
+            if (_config.SimulationMode)
+            {
+                LogHelper.Log.Info("模拟模式：跳过VM方案加载");
+            }
+            else if (!string.IsNullOrEmpty(_config.SolutionPath))
             {
                 if (!LoadVMSolution(_config.SolutionPath))
                 {
-                    StatusText = "VM方案加载失败，请检查方案路径";
-                    LogHelper.Log.Error("【启动中止】VM方案加载失败");
-                    DisconnectPLC();
-                    return;
+                    StatusText = "VM方案加载失败，以离线模式运行";
+                    LogHelper.Log.Warn("【警告】VM方案加载失败，以离线模式继续运行（检测结果将默认返回OK）");
                 }
             }
             else
