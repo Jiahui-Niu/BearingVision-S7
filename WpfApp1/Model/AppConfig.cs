@@ -50,6 +50,11 @@ namespace WpfApp1.Model
         public string HeartbeatAddr { get; set; } = "";
         public string HeartbeatDataType { get; set; } = "Bool";
 
+        // 模拟模式
+        public bool SimulationMode { get; set; } = false;
+        public string SimulationImageFolder { get; set; } = "";
+        public int SimulationIntervalMs { get; set; } = 3000;
+
         public static AppConfig Default()
         {
             var cfg = new AppConfig();

@@ -12,8 +12,8 @@
         <!-- 顶部菜单 -->
         <Menu DockPanel.Dock="Top" Background="#2A7A2A" Foreground="White">
             <MenuItem Header="方案" Foreground="White">
-                <MenuItem Header="选择方案文件" Click="MenuSelectSolution_Click" Foreground="Black"/>
-                <MenuItem Header="加载方案" Click="MenuLoadSolution_Click" Foreground="Black"/>
+                <MenuItem Header="选择方案文件" Click="MenuSelectSolution_Click"/>
+                <MenuItem Header="加载方案" Click="MenuLoadSolution_Click"/>
             </MenuItem>
             <MenuItem Header="相机设置" Foreground="White" Click="MenuCameraSet_Click"/>
             <MenuItem Header="全局变量" Foreground="White" Click="MenuGlobalVar_Click"/>

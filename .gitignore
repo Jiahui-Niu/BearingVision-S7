@@ -3,8 +3,11 @@
 *.suo
 .DS_Store
 
-# 参考资料中的大文件
-参考资料/*.pdf
+# 参考资料
+参考资料/
+
+# 临时搜索文件
+vm_dlls.txt
 
 # 编译输出
 WpfApp1/bin/

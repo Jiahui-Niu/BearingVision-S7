@@ -39,6 +39,14 @@ namespace WpfApp1.ViewModel
         public bool SaveNG { get => _saveNG; set => SetField(ref _saveNG, value); }
         public bool UsePhotometricStereo { get => _usePhotometricStereo; set => SetField(ref _usePhotometricStereo, value); }
 
+        private bool _simulationMode;
+        private string _simulationImageFolder;
+        private int _simulationIntervalMs = 3000;
+
+        public bool SimulationMode { get => _simulationMode; set => SetField(ref _simulationMode, value); }
+        public string SimulationImageFolder { get => _simulationImageFolder; set => SetField(ref _simulationImageFolder, value); }
+        public int SimulationIntervalMs { get => _simulationIntervalMs; set => SetField(ref _simulationIntervalMs, value); }
+
         public void LoadFromConfig(AppConfig config)
         {
             TotalCountAddr = config.TotalCountAddr;
@@ -53,6 +61,10 @@ namespace WpfApp1.ViewModel
             SaveOK = config.SaveOK;
             SaveNG = config.SaveNG;
             UsePhotometricStereo = config.UsePhotometricStereo;
+
+            SimulationMode = config.SimulationMode;
+            SimulationImageFolder = config.SimulationImageFolder;
+            SimulationIntervalMs = config.SimulationIntervalMs;
 
             _cameras.Clear();
             foreach (var c in config.Cameras)
@@ -91,6 +103,10 @@ namespace WpfApp1.ViewModel
             config.SaveOK = SaveOK;
             config.SaveNG = SaveNG;
             config.UsePhotometricStereo = UsePhotometricStereo;
+
+            config.SimulationMode = SimulationMode;
+            config.SimulationImageFolder = SimulationImageFolder;
+            config.SimulationIntervalMs = SimulationIntervalMs;
 
             config.Cameras.Clear();
             foreach (var vm in _cameras)
