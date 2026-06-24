@@ -19,5 +19,17 @@ namespace WpfApp1.UserControls
                     vm2.SaveImagePath = dialog.SelectedPath;
             }
         }
+
+        private void BtnSelectSimFolder_Click(object sender, RoutedEventArgs e)
+        {
+            var dialog = new System.Windows.Forms.FolderBrowserDialog();
+            if (DataContext is CheckSetViewModel vm)
+                dialog.SelectedPath = vm.SimulationImageFolder ?? @"C:\";
+            if (dialog.ShowDialog() == System.Windows.Forms.DialogResult.OK)
+            {
+                if (DataContext is CheckSetViewModel vm2)
+                    vm2.SimulationImageFolder = dialog.SelectedPath;
+            }
+        }
     }
 }

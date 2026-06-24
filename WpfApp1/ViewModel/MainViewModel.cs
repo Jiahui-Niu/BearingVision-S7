@@ -41,6 +41,9 @@ namespace WpfApp1.ViewModel
         private readonly object _detectLock = new object();
         private bool _isDetecting;
 
+        private readonly Random _simRandom = new Random();
+        private string[] _simImageFiles = new string[0];
+
         // Disk/CPU monitoring
         private string _diskInfo = "";
         private string _memInfo = "";
@@ -140,6 +143,24 @@ namespace WpfApp1.ViewModel
 
         public int CurrentUserRole { get => _currentUserRole; set => SetField(ref _currentUserRole, value); }
         public string CurrentUserName { get => _currentUserName; set => SetField(ref _currentUserName, value); }
+
+        public bool SimulationMode
+        {
+            get => _config?.SimulationMode ?? false;
+            set { _config.SimulationMode = value; OnPropertyChanged(); }
+        }
+
+        public string SimulationImageFolder
+        {
+            get => _config?.SimulationImageFolder ?? "";
+            set { _config.SimulationImageFolder = value; OnPropertyChanged(); }
+        }
+
+        public int SimulationIntervalMs
+        {
+            get => _config?.SimulationIntervalMs ?? 3000;
+            set { _config.SimulationIntervalMs = value; OnPropertyChanged(); }
+        }
 
         #endregion
 
@@ -477,9 +498,8 @@ namespace WpfApp1.ViewModel
 
             if (!ConnectPLC())
             {
-                StatusText = "PLC连接失败，请检查网络配置";
-                LogHelper.Log.Error("【启动中止】PLC连接失败");
-                return;
+                StatusText = "PLC未连接，以离线模式运行";
+                LogHelper.Log.Warn("【警告】PLC连接失败，以离线模式继续运行（PLC相关功能不可用）");
             }
 
             if (!string.IsNullOrEmpty(_config.SolutionPath))
@@ -499,10 +519,20 @@ namespace WpfApp1.ViewModel
 
             IsRunning = true;
             IsConnected = true;
-            StatusText = "运行中";
             CurrentBatchNo = EditBatchNo;
 
-            _plcPollingThread = new Thread(PLCPollingLoop) { IsBackground = true, Name = "PLCPolling" };
+            if (_config.SimulationMode)
+            {
+                StatusText = "模拟运行中";
+                _simImageFiles = LoadSimulationImageFiles();
+                LogHelper.Log.Info($"模拟模式启动，图片文件夹：{_config.SimulationImageFolder}，共{_simImageFiles.Length}张图片，间隔{_config.SimulationIntervalMs}ms");
+                _plcPollingThread = new Thread(SimulationPollingLoop) { IsBackground = true, Name = "SimulationPolling" };
+            }
+            else
+            {
+                StatusText = "运行中";
+                _plcPollingThread = new Thread(PLCPollingLoop) { IsBackground = true, Name = "PLCPolling" };
+            }
             _plcPollingThread.Start();
 
             LogHelper.Log.Info($"========== 检测已启动 型号:{ModelNo} 批次:{CurrentBatchNo} ==========");
@@ -604,6 +634,100 @@ namespace WpfApp1.ViewModel
                     LogHelper.Log.Error("PLC轮询异常", ex);
                     _plcConnected = false;
                     Thread.Sleep(1000);
+                }
+            }
+        }
+
+        private string[] LoadSimulationImageFiles()
+        {
+            try
+            {
+                var folder = _config.SimulationImageFolder;
+                if (string.IsNullOrEmpty(folder) || !Directory.Exists(folder))
+                    return new string[0];
+                var exts = new[] { "*.jpg", "*.jpeg", "*.png", "*.bmp" };
+                var files = new System.Collections.Generic.List<string>();
+                foreach (var ext in exts)
+                    files.AddRange(Directory.GetFiles(folder, ext));
+                return files.ToArray();
+            }
+            catch { return new string[0]; }
+        }
+
+        private BitmapSource LoadSimulationImage()
+        {
+            try
+            {
+                if (_simImageFiles.Length == 0) return null;
+                var file = _simImageFiles[_simRandom.Next(_simImageFiles.Length)];
+                var img = new BitmapImage();
+                img.BeginInit();
+                img.UriSource = new Uri(file);
+                img.CacheOption = BitmapCacheOption.OnLoad;
+                img.EndInit();
+                img.Freeze();
+                return img;
+            }
+            catch { return null; }
+        }
+
+        private void SaveSimulationImageToDisk(int camIndex, BitmapSource image, bool isOk)
+        {
+            try
+            {
+                if (image == null) return;
+                var basePath = _config.SaveImagePath;
+                var date = DateTime.Now.ToString("yyyyMMdd");
+                var dir = Path.Combine(basePath, date, $"Cam{camIndex + 1}", isOk ? "OK" : "NG");
+                Directory.CreateDirectory(dir);
+                var fileName = $"{DateTime.Now:HHmmss_fff}_{_config.ModelNo}_sim.jpg";
+                var fullPath = Path.Combine(dir, fileName);
+                var encoder = new JpegBitmapEncoder();
+                encoder.Frames.Add(BitmapFrame.Create(image));
+                using (var fs = new FileStream(fullPath, FileMode.Create))
+                    encoder.Save(fs);
+            }
+            catch (Exception ex)
+            {
+                LogHelper.Log.Error($"模拟图像保存失败 Cam{camIndex + 1}", ex);
+            }
+        }
+
+        private void SimulationPollingLoop()
+        {
+            while (_isRunning)
+            {
+                for (int i = 0; i < 6; i++)
+                {
+                    if (!_isRunning) break;
+                    if (!_config.CameraEnable[i]) continue;
+                    if (_config.Cameras.Count <= i || !_config.Cameras[i].IsOnline) continue;
+                    if (_isDetecting) continue;
+
+                    _isDetecting = true;
+                    int camIndex = i;
+                    ThreadPool.QueueUserWorkItem(_ =>
+                    {
+                        try
+                        {
+                            Application.Current?.Dispatcher.Invoke(() => Cameras[camIndex].IsDetecting = true);
+                            BitmapSource img = LoadSimulationImage();
+                            bool isOk = true;
+                            string defectInfo = "";
+                            LogHelper.Log.Info($"[Cam{camIndex + 1}] 模拟触发 结果:OK");
+                            Cameras[camIndex].SetResult(isOk, img, "", defectInfo);
+                            ResultVM.AddResult(isOk);
+                            if ((isOk && _config.SaveOK) || (!isOk && _config.SaveNG))
+                                SaveSimulationImageToDisk(camIndex, img, isOk);
+                        }
+                        finally
+                        {
+                            Application.Current?.Dispatcher.Invoke(() => Cameras[camIndex].IsDetecting = false);
+                            _isDetecting = false;
+                        }
+                    });
+
+                    Thread.Sleep(_config.SimulationIntervalMs);
                 }
             }
         }
