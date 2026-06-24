@@ -42,7 +42,7 @@ namespace WpfApp1.ViewModel
         private bool _isDetecting;
 
         private readonly Random _simRandom = new Random();
-        private string[] _simImageFiles = new string[0];
+        private string[][] _simImageFiles = new string[6][];
 
         // Disk/CPU monitoring
         private string _diskInfo = "";
@@ -527,7 +527,8 @@ namespace WpfApp1.ViewModel
             {
                 StatusText = "模拟运行中";
                 _simImageFiles = LoadSimulationImageFiles();
-                LogHelper.Log.Info($"模拟模式启动，图片文件夹：{_config.SimulationImageFolder}，共{_simImageFiles.Length}张图片，间隔{_config.SimulationIntervalMs}ms");
+                var totalFiles = 0; foreach (var f in _simImageFiles) if (f != null) totalFiles += f.Length;
+                LogHelper.Log.Info($"模拟模式启动，图片文件夹：{_config.SimulationImageFolder}，共{totalFiles}张图片，间隔{_config.SimulationIntervalMs}ms");
                 _plcPollingThread = new Thread(SimulationPollingLoop) { IsBackground = true, Name = "SimulationPolling" };
             }
             else
@@ -640,31 +641,38 @@ namespace WpfApp1.ViewModel
             }
         }
 
-        private string[] LoadSimulationImageFiles()
+        private string[][] LoadSimulationImageFiles()
         {
-            try
+            var result = new string[6][];
+            var exts = new[] { "*.jpg", "*.jpeg", "*.png", "*.bmp" };
+            var rootFolder = _config.SimulationImageFolder;
+            if (string.IsNullOrEmpty(rootFolder) || !Directory.Exists(rootFolder))
             {
-                var folder = _config.SimulationImageFolder;
-                if (string.IsNullOrEmpty(folder) || !Directory.Exists(folder))
-                    return new string[0];
-                var exts = new[] { "*.jpg", "*.jpeg", "*.png", "*.bmp" };
+                for (int i = 0; i < 6; i++) result[i] = new string[0];
+                return result;
+            }
+            for (int i = 0; i < 6; i++)
+            {
+                var subFolder = Path.Combine(rootFolder, $"Cam{i + 1}");
+                var searchFolder = Directory.Exists(subFolder) ? subFolder : rootFolder;
                 var files = new System.Collections.Generic.List<string>();
                 foreach (var ext in exts)
-                    files.AddRange(Directory.GetFiles(folder, ext));
-                return files.ToArray();
+                    files.AddRange(Directory.GetFiles(searchFolder, ext));
+                result[i] = files.ToArray();
             }
-            catch { return new string[0]; }
+            return result;
         }
 
-        private BitmapSource LoadSimulationImage()
+        private BitmapSource LoadSimulationImage(int camIndex)
         {
             try
             {
-                if (_simImageFiles.Length == 0) return null;
-                var file = _simImageFiles[_simRandom.Next(_simImageFiles.Length)];
+                var files = _simImageFiles[camIndex];
+                if (files == null || files.Length == 0) return null;
+                var file = files[_simRandom.Next(files.Length)];
                 var img = new BitmapImage();
                 img.BeginInit();
-                img.UriSource = new Uri(file);
+                img.UriSource = new Uri(file, UriKind.Absolute);
                 img.CacheOption = BitmapCacheOption.OnLoad;
                 img.EndInit();
                 img.Freeze();
@@ -697,7 +705,10 @@ namespace WpfApp1.ViewModel
 
         private void SimulationPollingLoop()
         {
-            LogHelper.Log.Info($"[模拟] 相机配置数量:{_config.Cameras.Count}，图片文件数:{_simImageFiles.Length}");
+            var totalFiles = 0; foreach (var f in _simImageFiles) if (f != null) totalFiles += f.Length;
+            LogHelper.Log.Info($"[模拟] 相机配置数量:{_config.Cameras.Count}，图片文件总数:{totalFiles}");
+            for (int i = 0; i < 6; i++)
+                LogHelper.Log.Info($"[模拟] Cam{i+1} 图片数:{(_simImageFiles[i]?.Length ?? 0)}");
             while (_isRunning)
             {
                 for (int i = 0; i < 6; i++)
@@ -714,7 +725,7 @@ namespace WpfApp1.ViewModel
                         try
                         {
                             Application.Current?.Dispatcher.Invoke(() => Cameras[camIndex].IsDetecting = true);
-                            BitmapSource img = LoadSimulationImage();
+                            BitmapSource img = LoadSimulationImage(camIndex);
                             bool isOk = true;
                             string defectInfo = "";
                             LogHelper.Log.Info($"[Cam{camIndex + 1}] 模拟触发 结果:OK");

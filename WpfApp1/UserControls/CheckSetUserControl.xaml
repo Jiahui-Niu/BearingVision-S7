@@ -101,6 +101,8 @@
                         <TextBox Grid.Column="1" Text="{Binding SimulationImageFolder}" Margin="4,0"/>
                         <Button Grid.Column="2" Content="选择" Style="{StaticResource GreenButton}" Margin="4" Click="BtnSelectSimFolder_Click"/>
                     </Grid>
+                    <TextBlock Text="提示：文件夹下可建 Cam1~Cam6 子文件夹，每个相机使用各自的图片；无子文件夹则共用根目录图片"
+                               Foreground="#AAAAAA" FontSize="10" Margin="4,0,4,4" TextWrapping="Wrap"/>
                     <Grid Margin="2,2">
                         <Grid.ColumnDefinitions>
                             <ColumnDefinition Width="80"/>
