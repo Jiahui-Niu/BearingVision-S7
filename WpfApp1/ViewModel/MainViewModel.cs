@@ -150,11 +150,6 @@ namespace WpfApp1.ViewModel
             set { _config.SimulationMode = value; OnPropertyChanged(); }
         }
 
-        public string SimulationImageFolder
-        {
-            get => _config?.SimulationImageFolder ?? "";
-            set { _config.SimulationImageFolder = value; OnPropertyChanged(); }
-        }
 
         public int SimulationIntervalMs
         {
@@ -528,7 +523,7 @@ namespace WpfApp1.ViewModel
                 StatusText = "模拟运行中";
                 _simImageFiles = LoadSimulationImageFiles();
                 var totalFiles = 0; foreach (var f in _simImageFiles) if (f != null) totalFiles += f.Length;
-                LogHelper.Log.Info($"模拟模式启动，图片文件夹：{_config.SimulationImageFolder}，共{totalFiles}张图片，间隔{_config.SimulationIntervalMs}ms");
+                LogHelper.Log.Info($"模拟模式启动，共{totalFiles}张图片，间隔{_config.SimulationIntervalMs}ms");
                 _plcPollingThread = new Thread(SimulationPollingLoop) { IsBackground = true, Name = "SimulationPolling" };
             }
             else
@@ -645,19 +640,20 @@ namespace WpfApp1.ViewModel
         {
             var result = new string[6][];
             var exts = new[] { "*.jpg", "*.jpeg", "*.png", "*.bmp" };
-            var rootFolder = _config.SimulationImageFolder;
-            if (string.IsNullOrEmpty(rootFolder) || !Directory.Exists(rootFolder))
-            {
-                for (int i = 0; i < 6; i++) result[i] = new string[0];
-                return result;
-            }
+            var folders = _config.SimulationImageFolders;
+            if (folders == null || folders.Length < 6)
+                folders = new string[6];
             for (int i = 0; i < 6; i++)
             {
-                var subFolder = Path.Combine(rootFolder, $"Cam{i + 1}");
-                var searchFolder = Directory.Exists(subFolder) ? subFolder : rootFolder;
+                var folder = folders[i];
+                if (string.IsNullOrEmpty(folder) || !Directory.Exists(folder))
+                {
+                    result[i] = new string[0];
+                    continue;
+                }
                 var files = new System.Collections.Generic.List<string>();
                 foreach (var ext in exts)
-                    files.AddRange(Directory.GetFiles(searchFolder, ext));
+                    files.AddRange(Directory.GetFiles(folder, ext));
                 result[i] = files.ToArray();
             }
             return result;

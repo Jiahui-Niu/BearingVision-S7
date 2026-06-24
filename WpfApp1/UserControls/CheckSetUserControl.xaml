@@ -91,18 +91,23 @@
             <GroupBox Header="模拟模式（无相机/PLC时测试用）" Margin="0,4">
                 <StackPanel>
                     <CheckBox Content="启用模拟模式" IsChecked="{Binding SimulationMode}" Margin="4,4" VerticalAlignment="Center"/>
-                    <Grid Margin="2,4">
-                        <Grid.ColumnDefinitions>
-                            <ColumnDefinition Width="80"/>
-                            <ColumnDefinition Width="*"/>
-                            <ColumnDefinition Width="80"/>
-                        </Grid.ColumnDefinitions>
-                        <TextBlock Grid.Column="0" Text="测试图片：" VerticalAlignment="Center"/>
-                        <TextBox Grid.Column="1" Text="{Binding SimulationImageFolder}" Margin="4,0"/>
-                        <Button Grid.Column="2" Content="选择" Style="{StaticResource GreenButton}" Margin="4" Click="BtnSelectSimFolder_Click"/>
-                    </Grid>
-                    <TextBlock Text="提示：文件夹下可建 Cam1~Cam6 子文件夹，每个相机使用各自的图片；无子文件夹则共用根目录图片"
-                               Foreground="#AAAAAA" FontSize="10" Margin="4,0,4,4" TextWrapping="Wrap"/>
+                    <ItemsControl ItemsSource="{Binding SimFolders}" Margin="2,4">
+                        <ItemsControl.ItemTemplate>
+                            <DataTemplate>
+                                <Grid Margin="0,2">
+                                    <Grid.ColumnDefinitions>
+                                        <ColumnDefinition Width="40"/>
+                                        <ColumnDefinition Width="*"/>
+                                        <ColumnDefinition Width="60"/>
+                                    </Grid.ColumnDefinitions>
+                                    <TextBlock Grid.Column="0" Text="{Binding CameraName}" VerticalAlignment="Center"/>
+                                    <TextBox Grid.Column="1" Text="{Binding Folder, UpdateSourceTrigger=PropertyChanged}" Margin="4,0"/>
+                                    <Button Grid.Column="2" Content="选择" Style="{StaticResource GreenButton}"
+                                            Margin="4,0" Tag="{Binding}" Click="BtnSelectSimFolder_Click"/>
+                                </Grid>
+                            </DataTemplate>
+                        </ItemsControl.ItemTemplate>
+                    </ItemsControl>
                     <Grid Margin="2,2">
                         <Grid.ColumnDefinitions>
                             <ColumnDefinition Width="80"/>

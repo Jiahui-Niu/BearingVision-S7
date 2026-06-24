@@ -22,13 +22,14 @@ namespace WpfApp1.UserControls
 
         private void BtnSelectSimFolder_Click(object sender, RoutedEventArgs e)
         {
-            var dialog = new System.Windows.Forms.FolderBrowserDialog();
-            if (DataContext is CheckSetViewModel vm)
-                dialog.SelectedPath = vm.SimulationImageFolder ?? @"C:\";
-            if (dialog.ShowDialog() == System.Windows.Forms.DialogResult.OK)
+            if (sender is Button btn && btn.Tag is SimCameraFolderViewModel item)
             {
-                if (DataContext is CheckSetViewModel vm2)
-                    vm2.SimulationImageFolder = dialog.SelectedPath;
+                var dialog = new System.Windows.Forms.FolderBrowserDialog
+                {
+                    SelectedPath = item.Folder ?? @"C:\"
+                };
+                if (dialog.ShowDialog() == System.Windows.Forms.DialogResult.OK)
+                    item.Folder = dialog.SelectedPath;
             }
         }
     }
