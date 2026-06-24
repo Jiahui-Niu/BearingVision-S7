@@ -229,7 +229,7 @@ namespace WpfApp1.ViewModel
                     _vmSolution = null;
                 }
 
-                VmSolution.Load(path, "", false);
+                VmSolution.Load(path, "", true);
                 _vmSolution = VmSolution.Instance;
                 _vmLoaded = true;
                 LogHelper.Log.Info($"VM方案加载成功: {path}");
