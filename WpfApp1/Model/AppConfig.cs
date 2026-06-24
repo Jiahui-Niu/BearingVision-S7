@@ -52,7 +52,7 @@ namespace WpfApp1.Model
 
         // 模拟模式
         public bool SimulationMode { get; set; } = false;
-        public string SimulationImageFolder { get; set; } = "";
+        public string[] SimulationImageFolders { get; set; } = new string[6];
         public int SimulationIntervalMs { get; set; } = 3000;
 
         public static AppConfig Default()

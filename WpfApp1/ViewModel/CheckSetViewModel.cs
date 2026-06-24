@@ -40,12 +40,11 @@ namespace WpfApp1.ViewModel
         public bool UsePhotometricStereo { get => _usePhotometricStereo; set => SetField(ref _usePhotometricStereo, value); }
 
         private bool _simulationMode;
-        private string _simulationImageFolder;
         private int _simulationIntervalMs = 3000;
 
         public bool SimulationMode { get => _simulationMode; set => SetField(ref _simulationMode, value); }
-        public string SimulationImageFolder { get => _simulationImageFolder; set => SetField(ref _simulationImageFolder, value); }
         public int SimulationIntervalMs { get => _simulationIntervalMs; set => SetField(ref _simulationIntervalMs, value); }
+        public ObservableCollection<SimCameraFolderViewModel> SimFolders { get; } = new ObservableCollection<SimCameraFolderViewModel>();
 
         public void LoadFromConfig(AppConfig config)
         {
@@ -63,8 +62,12 @@ namespace WpfApp1.ViewModel
             UsePhotometricStereo = config.UsePhotometricStereo;
 
             SimulationMode = config.SimulationMode;
-            SimulationImageFolder = config.SimulationImageFolder;
             SimulationIntervalMs = config.SimulationIntervalMs;
+            SimFolders.Clear();
+            if (config.SimulationImageFolders == null || config.SimulationImageFolders.Length < 6)
+                config.SimulationImageFolders = new string[6];
+            for (int i = 0; i < 6; i++)
+                SimFolders.Add(new SimCameraFolderViewModel { CameraName = $"Cam{i + 1}", Folder = config.SimulationImageFolders[i] ?? "" });
 
             _cameras.Clear();
             foreach (var c in config.Cameras)
@@ -105,8 +108,10 @@ namespace WpfApp1.ViewModel
             config.UsePhotometricStereo = UsePhotometricStereo;
 
             config.SimulationMode = SimulationMode;
-            config.SimulationImageFolder = SimulationImageFolder;
             config.SimulationIntervalMs = SimulationIntervalMs;
+            config.SimulationImageFolders = new string[6];
+            for (int i = 0; i < SimFolders.Count && i < 6; i++)
+                config.SimulationImageFolders[i] = SimFolders[i].Folder ?? "";
 
             config.Cameras.Clear();
             foreach (var vm in _cameras)
@@ -130,6 +135,13 @@ namespace WpfApp1.ViewModel
                 });
             }
         }
+    }
+
+    public class SimCameraFolderViewModel : ViewModelBase
+    {
+        public string CameraName { get; set; }
+        private string _folder;
+        public string Folder { get => _folder; set => SetField(ref _folder, value); }
     }
 
     public class CameraConfigViewModel : ViewModelBase
