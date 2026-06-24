@@ -4,6 +4,11 @@
              Background="#1E5C1E">
     <ScrollViewer>
         <StackPanel Margin="10">
+            <!-- 保存按钮 -->
+            <Button Content="保存" Style="{StaticResource GreenButton}" Width="80"
+                    HorizontalAlignment="Left" Margin="0,0,0,8"
+                    Command="{Binding RelativeSource={RelativeSource AncestorType=Window}, Path=DataContext.SaveConfigCommand}"/>
+
             <!-- 通讯地址配置 -->
             <GroupBox Header="通讯地址配置" Margin="0,4">
                 <StackPanel>
