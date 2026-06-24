@@ -89,7 +89,15 @@ namespace WpfApp1.Model
                 {
                     var json = File.ReadAllText(ConfigPath);
                     var cfg = JsonConvert.DeserializeObject<AppConfig>(json);
-                    if (cfg != null) return cfg;
+                    if (cfg != null)
+                    {
+                        var def = Default();
+                        if (cfg.Cameras == null || cfg.Cameras.Count == 0)
+                            cfg.Cameras = def.Cameras;
+                        if (cfg.BrightnessStages == null || cfg.BrightnessStages.Count == 0)
+                            cfg.BrightnessStages = def.BrightnessStages;
+                        return cfg;
+                    }
                 }
             }
             catch { }

@@ -697,13 +697,14 @@ namespace WpfApp1.ViewModel
 
         private void SimulationPollingLoop()
         {
+            LogHelper.Log.Info($"[模拟] 相机配置数量:{_config.Cameras.Count}，图片文件数:{_simImageFiles.Length}");
             while (_isRunning)
             {
                 for (int i = 0; i < 6; i++)
                 {
                     if (!_isRunning) break;
-                    if (!_config.CameraEnable[i]) continue;
-                    if (_config.Cameras.Count <= i || !_config.Cameras[i].IsOnline) continue;
+                    if (!_config.CameraEnable[i]) { LogHelper.Log.Debug($"[模拟] Cam{i+1} CameraEnable=false，跳过"); continue; }
+                    if (_config.Cameras.Count <= i || !_config.Cameras[i].IsOnline) { LogHelper.Log.Debug($"[模拟] Cam{i+1} IsOnline=false或未配置，跳过"); continue; }
                     if (_isDetecting) continue;
 
                     _isDetecting = true;
