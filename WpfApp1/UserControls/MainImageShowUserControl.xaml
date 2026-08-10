@@ -2,6 +2,7 @@
              xmlns="http://schemas.microsoft.com/winfx/2006/xaml/presentation"
              xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
              xmlns:vm="clr-namespace:WpfApp1.ViewModel"
+             xmlns:vmctl="clr-namespace:VMControls.WPF.Release;assembly=VMControls.WPF.Release"
              Background="#1E5C1E">
     <UserControl.Resources>
         <BooleanToVisibilityConverter x:Key="BoolToVis"/>
@@ -42,9 +43,15 @@
                         </TextBlock>
                     </Grid>
 
-                    <!-- 图像 -->
+                    <!-- 图像：真实/联机模式下用 VisionMaster 原生渲染控件（VmRenderControl），
+                         直接绑定 VM 方案里的图像采集模块，由 VM 自身推流显示，带坐标探针；
+                         模拟模式（本地图片文件夹）没有 VM 模块可绑，仍走 Image+DisplayImage -->
                     <Grid Grid.Row="1">
-                        <Image Source="{Binding DisplayImage}" Stretch="Uniform"/>
+                        <vmctl:VmRenderControl x:Name="PartVmRender" Loaded="VmRenderControl_Loaded"
+                                                CoordinateInfoVisible="True"
+                                                Visibility="{Binding ShowVmRender, Converter={StaticResource BoolToVis}}"/>
+                        <Image Source="{Binding DisplayImage}" Stretch="Uniform"
+                               Visibility="{Binding IsSimulationMode, Converter={StaticResource BoolToVis}}"/>
                         <!-- 检测结果叠加 -->
                         <ItemsControl ItemsSource="{Binding DetectResults}" VerticalAlignment="Top" HorizontalAlignment="Left"
                                       Margin="2" Visibility="{Binding IsOK, Converter={StaticResource BoolToVis}, ConverterParameter=Invert}">

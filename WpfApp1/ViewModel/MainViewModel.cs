@@ -179,7 +179,7 @@ namespace WpfApp1.ViewModel
 
             for (int i = 0; i < 6; i++)
             {
-                var cam = new MainImageShowViewModel { CameraIndex = i };
+                var cam = new MainImageShowViewModel { CameraIndex = i, IsSimulationMode = _config.SimulationMode };
                 if (_config.Cameras.Count > i)
                     cam.StationName = _config.Cameras[i].StationName;
                 else
@@ -311,6 +311,45 @@ namespace WpfApp1.ViewModel
                 LogHelper.Log.Error($"VM检测触发失败 Cam{camIndex + 1}", ex);
                 defectInfo = "VM检测异常";
                 return false;
+            }
+        }
+
+        /// <summary>
+        /// 方案加载成功后，把每个相机格子的 VmRenderControl 绑定到该相机对应流程的图像采集模块，
+        /// 绑定后画面由 VM 控件自身推流渲染，不再需要每次触发后手动转换 Bitmap
+        /// </summary>
+        private void BindVMRenderControls()
+        {
+            if (!_vmLoaded || _vmSolution == null) return;
+
+            for (int i = 0; i < Cameras.Count; i++)
+            {
+                var renderCtrl = Cameras[i].RenderControl;
+                if (renderCtrl == null) continue;
+
+                try
+                {
+                    var procName = GetVMProcedureName(i);
+                    dynamic proc = _vmSolution[procName];
+                    if (proc == null)
+                    {
+                        LogHelper.Log.Warn($"Cam{i + 1} 绑定渲染控件失败：VM流程不存在[{procName}]");
+                        continue;
+                    }
+
+                    dynamic imgMod = proc.GetModule(_config.VMImageModuleName);
+                    if (imgMod == null)
+                    {
+                        LogHelper.Log.Warn($"Cam{i + 1} 绑定渲染控件失败：找不到图像模块[{_config.VMImageModuleName}]");
+                        continue;
+                    }
+
+                    renderCtrl.ModuleSource = imgMod;
+                }
+                catch (Exception ex)
+                {
+                    LogHelper.Log.Error($"Cam{i + 1} 绑定渲染控件异常", ex);
+                }
             }
         }
 
@@ -497,6 +536,8 @@ namespace WpfApp1.ViewModel
                 LogHelper.Log.Warn("【警告】PLC连接失败，以离线模式继续运行（PLC相关功能不可用）");
             }
 
+            foreach (var c in Cameras) c.IsSimulationMode = _config.SimulationMode;
+
             if (_config.SimulationMode)
             {
                 LogHelper.Log.Info("模拟模式：跳过VM方案加载");
@@ -507,6 +548,10 @@ namespace WpfApp1.ViewModel
                 {
                     StatusText = "VM方案加载失败，以离线模式运行";
                     LogHelper.Log.Warn("【警告】VM方案加载失败，以离线模式继续运行（检测结果将默认返回OK）");
+                }
+                else
+                {
+                    BindVMRenderControls();
                 }
             }
             else
@@ -546,6 +591,11 @@ namespace WpfApp1.ViewModel
 
             _plcPollingThread?.Join(3000);
             _plcPollingThread = null;
+
+            foreach (var c in Cameras)
+            {
+                if (c.RenderControl != null) c.RenderControl.ModuleSource = null;
+            }
 
             StopVMSolution();
             DisconnectPLC();

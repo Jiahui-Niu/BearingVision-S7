@@ -2,6 +2,7 @@ using System;
 using System.Collections.ObjectModel;
 using System.Windows.Media.Imaging;
 using System.Windows;
+using VMControls.WPF.Release;
 
 namespace WpfApp1.ViewModel
 {
@@ -15,6 +16,7 @@ namespace WpfApp1.ViewModel
         private string _imageInfo = "";
         private bool _isOnline = true;
         private bool _isDetecting;
+        private bool _isSimulationMode;
 
         private int _totalCount;
         private int _okCount;
@@ -82,6 +84,28 @@ namespace WpfApp1.ViewModel
             get => _isDetecting;
             set => SetField(ref _isDetecting, value);
         }
+
+        /// <summary>
+        /// 是否为模拟模式（本地图片文件夹）。模拟模式下没有真实VM方案可绑，画面走 DisplayImage；
+        /// 非模拟模式下画面改用 VM 原生渲染控件（见 ShowVmRender / RenderControl）
+        /// </summary>
+        public bool IsSimulationMode
+        {
+            get => _isSimulationMode;
+            set
+            {
+                SetField(ref _isSimulationMode, value);
+                OnPropertyChanged(nameof(ShowVmRender));
+            }
+        }
+
+        public bool ShowVmRender => !_isSimulationMode;
+
+        /// <summary>
+        /// 该相机格子里 VisionMaster 原生渲染控件（VmRenderControl）的实例引用，
+        /// 由 MainImageShowUserControl 在控件加载完成时写入，供 MainViewModel 绑定 ModuleSource
+        /// </summary>
+        public VmRenderControl RenderControl { get; set; }
 
         public int TotalCount
         {

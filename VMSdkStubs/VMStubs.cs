@@ -96,3 +96,16 @@ namespace ImageCollectModuCs
         VMImageInfo GetOutputImage();
     }
 }
+
+// VMControls.WPF.Release 桩 —— 仅 MainImageShowViewModel/MainViewModel 用到的最小面
+// 真实类型来自 VisionMaster 4.4.3 的 VMControls.WPF.Release.dll（WPF 渲染控件）
+// 注：CI 构建跳过 XAML 编译（见 XamlGeneratedStubs.ci.cs），XAML 里的 vmctl:VmRenderControl
+// 不会被解析，这里只需保证 .cs 代码里引用的成员能编译通过
+namespace VMControls.WPF.Release
+{
+    public class VmRenderControl
+    {
+        public object ModuleSource { get; set; }
+        public bool CoordinateInfoVisible { get; set; }
+    }
+}
