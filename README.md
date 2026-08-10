@@ -2,8 +2,8 @@
 
 工业视觉检测软件，用于成品轴承外观自动化检测。支持 6 路相机同步检测，自动判断 OK/NG 并通知 PLC 剔料。
 
-**开发方：** 台视科技  
-**客户：** 宁波品晗智能视觉
+**开发方：** NiuNiu  
+**客户：** AWei
 
 [![Build](https://github.com/Jiahui-Niu/BearingVision-S7/actions/workflows/build.yml/badge.svg)](https://github.com/Jiahui-Niu/BearingVision-S7/actions/workflows/build.yml)
 

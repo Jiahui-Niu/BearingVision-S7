@@ -1,7 +1,7 @@
 <Window x:Class="WpfApp1.View.LoginWindow"
         xmlns="http://schemas.microsoft.com/winfx/2006/xaml/presentation"
         xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
-        Title="品晗视觉 - 登录" Height="300" Width="400"
+        Title="AWei视觉 - 登录" Height="300" Width="400"
         WindowStartupLocation="CenterScreen" ResizeMode="NoResize"
         Background="#1A4A1A" WindowStyle="SingleBorderWindow">
     <Grid>
@@ -17,7 +17,7 @@
             <StackPanel VerticalAlignment="Center" HorizontalAlignment="Center">
                 <TextBlock Text="成品轴承外观机" FontSize="22" FontWeight="Bold"
                            Foreground="White" HorizontalAlignment="Center"/>
-                <TextBlock Text="宁波品晗智能视觉" FontSize="11" Foreground="#88DD88"
+                <TextBlock Text="AWei" FontSize="11" Foreground="#88DD88"
                            HorizontalAlignment="Center" Margin="0,2,0,0"/>
             </StackPanel>
         </Border>

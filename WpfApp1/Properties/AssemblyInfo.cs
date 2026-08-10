@@ -3,8 +3,8 @@ using System.Runtime.InteropServices;
 using System.Windows;
 
 [assembly: AssemblyTitle("成品轴承外观机")]
-[assembly: AssemblyDescription("宁波品晗智能视觉 - 成品轴承外观检测系统")]
-[assembly: AssemblyCompany("宁波品晗智能视觉")]
+[assembly: AssemblyDescription("AWei - 成品轴承外观检测系统")]
+[assembly: AssemblyCompany("AWei")]
 [assembly: AssemblyProduct("BearingVision")]
 [assembly: AssemblyCopyright("Copyright © 2024")]
 [assembly: ComVisible(false)]
