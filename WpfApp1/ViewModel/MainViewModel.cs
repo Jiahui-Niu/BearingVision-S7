@@ -930,10 +930,17 @@ namespace WpfApp1.ViewModel
 
         public void SelectSolutionPath()
         {
+            string initialDir = @"D:\";
+            if (!string.IsNullOrWhiteSpace(_config.SolutionPath))
+            {
+                try { initialDir = Path.GetDirectoryName(_config.SolutionPath) ?? initialDir; }
+                catch { }
+            }
+
             var dialog = new Microsoft.Win32.OpenFileDialog
             {
                 Filter = "VM方案文件|*.sol",
-                InitialDirectory = Path.GetDirectoryName(_config.SolutionPath) ?? @"D:\"
+                InitialDirectory = initialDir
             };
             if (dialog.ShowDialog() == true)
             {
