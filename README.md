@@ -32,7 +32,7 @@
 |------|------|
 | 语言 / 框架 | C# / WPF，.NET Framework 4.6.1 |
 | 架构模式 | MVVM |
-| 视觉算法平台 | VisionMaster 4.4.0（海康机器人） |
+| 视觉算法平台 | VisionMaster 4.4.30（海康机器人） |
 | PLC 通信 | HslCommunication（Siemens S7 / Omron FINS TCP） |
 | 数据库 | SQLite（System.Data.SQLite） |
 | 配置持久化 | JSON（Newtonsoft.Json） |
@@ -129,7 +129,7 @@ Result 值：`1 = OK`，`2 = NG`（Int16）
 ### 必须安装
 | 软件 | 版本 | 说明 |
 |------|------|------|
-| VisionMaster | 4.4.0 | 提供 VM SDK DLL 及算法运行时 |
+| VisionMaster | 4.4.30 | 提供 VM SDK DLL 及算法运行时 |
 | .NET Framework | 4.6.1 | Windows 10 自带，一般无需手动安装 |
 | Visual Studio | 2022 | 仅开发编译时需要 |
 
@@ -152,7 +152,7 @@ Result 值：`1 = OK`，`2 = NG`（Int16）
 # 1. 克隆项目
 git clone git@github.com:Jiahui-Niu/BearingVision-S7.git
 
-# 2. 安装 VisionMaster 4.4.0
+# 2. 安装 VisionMaster 4.4.30
 
 # 3. 将 HslCommunication.dll 放入 WpfApp1\bin\x64\Debug\
 
@@ -168,7 +168,7 @@ git clone git@github.com:Jiahui-Niu/BearingVision-S7.git
 
 1. VS 编译 `Release|x64`，产物在 `WpfApp1\bin\x64\Release\`
 2. 将整个 Release 目录复制到工控机（如 `D:\WpfSurface\`）
-3. 工控机需已安装 VisionMaster 4.4.0
+3. 工控机需已安装 VisionMaster 4.4.30
 4. 运行 `WpfSurface.exe`
 5. 在「方案配置」页填写 VM 方案路径、PLC IP 等参数，保存
 6. 点击「开始」，联调 PLC 信号和相机检测结果
@@ -293,7 +293,7 @@ logs\
 
 | 项目 | 生产（本地 VS） | CI（GitHub Actions） |
 |------|----------------|----------------------|
-| VM SDK | VisionMaster 4.4.0 安装目录 | `VMSdkStubs` 桩 DLL |
+| VM SDK | VisionMaster 4.4.30 安装目录 | `VMSdkStubs` 桩 DLL |
 | HslCommunication | `bin\x64\Debug\` 手动放置 | `VMSdkStubs` 桩类型 |
 | log4net | VM 安装目录 | NuGet 2.0.15 |
 | XAML 编译 | mc.exe 完整编译 | 跳过，由 `XamlGeneratedStubs.ci.cs` 提供桩代码 |
