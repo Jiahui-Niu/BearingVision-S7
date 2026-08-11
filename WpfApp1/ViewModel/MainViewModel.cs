@@ -136,6 +136,14 @@ namespace WpfApp1.ViewModel
         /// <summary>方案配置页：尚未设置方案路径时，VM工作台区域显示占位说明</summary>
         public bool ShowSolutionPlaceholder => string.IsNullOrWhiteSpace(SolutionPath);
 
+        private string _solutionPassword = "";
+        /// <summary>方案密码：若.sol文件加密，加载/保存/新增型号时需要提供正确密码，否则VM SDK会弹窗要求输入密码</summary>
+        public string SolutionPassword
+        {
+            get => _solutionPassword;
+            set => SetField(ref _solutionPassword, value);
+        }
+
         /// <summary>方案配置页"方案选择"下拉框：当前方案路径所在目录下的全部.sol文件（仅文件名）</summary>
         public ObservableCollection<string> SolutionFileList { get; } = new ObservableCollection<string>();
 
@@ -275,7 +283,7 @@ namespace WpfApp1.ViewModel
                     _vmSolution = null;
                 }
 
-                VmSolution.Load(path, "", true);
+                VmSolution.Load(path, SolutionPassword, true);
                 _vmSolution = VmSolution.Instance;
                 _vmLoaded = true;
                 LoadProgress = 100;
@@ -383,7 +391,7 @@ namespace WpfApp1.ViewModel
             var newPath = Path.Combine(dir, NewModelNo + ".sol");
             try
             {
-                string err = VmSolution.SaveAs(newPath, "");
+                string err = VmSolution.SaveAs(newPath, SolutionPassword);
                 if (string.IsNullOrEmpty(err))
                 {
                     LogHelper.Log.Info($"新型号方案已创建: {newPath} (基于 {SolutionPath} 另存为)");

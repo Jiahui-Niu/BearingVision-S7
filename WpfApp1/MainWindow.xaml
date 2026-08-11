@@ -66,6 +66,12 @@
                         <ComboBox Width="140" ItemsSource="{Binding SolutionFileList}"
                                   SelectedItem="{Binding SelectedSolutionFile}" Margin="0,0,16,0"/>
 
+                        <!-- 方案密码：.sol文件若加密，需在此填写正确密码，否则VM SDK加载/保存时会弹窗要求输入密码 -->
+                        <TextBlock Text="方案密码：" VerticalAlignment="Center" Margin="0,0,4,0"/>
+                        <TextBox Width="100" Text="{Binding SolutionPassword}" Margin="0,0,4,0"/>
+                        <Button Content="导入方案" Width="70" Style="{StaticResource GreenButton}"
+                                Click="BtnImportSolution_Click" Margin="0,0,16,0"/>
+
                         <TextBlock Text="进度：" VerticalAlignment="Center" Margin="0,0,4,0"/>
                         <ProgressBar Width="120" Height="18" Minimum="0" Maximum="100"
                                      Value="{Binding LoadProgress}" IsIndeterminate="{Binding IsLoadingSolution}"
@@ -91,7 +97,7 @@
                                 <TextBlock Text="这里将显示 VisionMaster 原生编辑界面：左侧流程图编辑区与工具箱、右侧图像与模块结果、下方历史结果，均由 VM 自身渲染。"
                                            Foreground="#AAAAAA" FontSize="12" TextWrapping="Wrap"
                                            TextAlignment="Center" Margin="0,10,0,0"/>
-                                <TextBlock Text="请先在上方“方案路径”选择或浏览一个 .sol 方案文件，导入后此处会自动加载显示。"
+                                <TextBlock Text="请先在上方“方案路径”选择或浏览一个 .sol 方案文件；若方案已加密，需在“方案密码”填写正确密码后点击“导入方案”。"
                                            Foreground="#AAAAAA" FontSize="12" TextWrapping="Wrap"
                                            TextAlignment="Center" Margin="0,6,0,0"/>
                             </StackPanel>

@@ -33,9 +33,12 @@ namespace WpfApp1
         {
             var path = _vm.SolutionPath;
             if (string.IsNullOrEmpty(path) || !File.Exists(path)) return;
-            try { VmFrontend.LoadSol(path, ""); }
+            try { VmFrontend.LoadSol(path, _vm.SolutionPassword); }
             catch (Exception ex) { MessageBox.Show("加载方案到VM工作台失败: " + ex.Message, "提示"); }
         }
+
+        /// <summary>"导入方案"按钮：显式触发加载，用于填写/修改方案密码后重试</summary>
+        private void BtnImportSolution_Click(object sender, RoutedEventArgs e) => LoadFrontendSolution();
 
         private void Window_Closing(object sender, System.ComponentModel.CancelEventArgs e)
         {
