@@ -46,6 +46,26 @@ namespace WpfApp1.ViewModel
         public int SimulationIntervalMs { get => _simulationIntervalMs; set => SetField(ref _simulationIntervalMs, value); }
         public ObservableCollection<SimCameraFolderViewModel> SimFolders { get; } = new ObservableCollection<SimCameraFolderViewModel>();
 
+        private string _vmProcedurePrefix;
+        private string _vmGlobalVarModuleName;
+        private string _vmResultVarName;
+        private string _vmDefectVarName;
+        private string _vmImageModuleName;
+        private int _vmRunTimeout;
+
+        /// <summary>VM流程名前缀，实际流程名 = 前缀 + (相机序号+1)，单个相机可在下方列表单独覆盖</summary>
+        public string VMProcedurePrefix { get => _vmProcedurePrefix; set => SetField(ref _vmProcedurePrefix, value); }
+        /// <summary>VM方案中全局变量模块的名称，需与VM方案编辑器中一致</summary>
+        public string VMGlobalVarModuleName { get => _vmGlobalVarModuleName; set => SetField(ref _vmGlobalVarModuleName, value); }
+        /// <summary>检测结果变量名(1=OK, 2=NG)</summary>
+        public string VMResultVarName { get => _vmResultVarName; set => SetField(ref _vmResultVarName, value); }
+        /// <summary>缺陷描述变量名</summary>
+        public string VMDefectVarName { get => _vmDefectVarName; set => SetField(ref _vmDefectVarName, value); }
+        /// <summary>图像采集模块名</summary>
+        public string VMImageModuleName { get => _vmImageModuleName; set => SetField(ref _vmImageModuleName, value); }
+        /// <summary>等待VM流程执行完成的超时时间(ms)</summary>
+        public int VMRunTimeout { get => _vmRunTimeout; set => SetField(ref _vmRunTimeout, value); }
+
         public void LoadFromConfig(AppConfig config)
         {
             TotalCountAddr = config.TotalCountAddr;
@@ -69,6 +89,13 @@ namespace WpfApp1.ViewModel
             for (int i = 0; i < 6; i++)
                 SimFolders.Add(new SimCameraFolderViewModel { CameraName = $"Cam{i + 1}", Folder = config.SimulationImageFolders[i] ?? "" });
 
+            VMProcedurePrefix = config.VMProcedurePrefix;
+            VMGlobalVarModuleName = config.VMGlobalVarModuleName;
+            VMResultVarName = config.VMResultVarName;
+            VMDefectVarName = config.VMDefectVarName;
+            VMImageModuleName = config.VMImageModuleName;
+            VMRunTimeout = config.VMRunTimeout;
+
             _cameras.Clear();
             foreach (var c in config.Cameras)
             {
@@ -87,7 +114,8 @@ namespace WpfApp1.ViewModel
                     IsRotation = c.IsRotation,
                     UsePhotometricStereo = c.UsePhotometricStereo,
                     SingleRun = c.SingleRun,
-                    ExecuteInterval = c.ExecuteInterval
+                    ExecuteInterval = c.ExecuteInterval,
+                    VMProcedureName = c.VMProcedureName
                 });
             }
         }
@@ -113,6 +141,13 @@ namespace WpfApp1.ViewModel
             for (int i = 0; i < SimFolders.Count && i < 6; i++)
                 config.SimulationImageFolders[i] = SimFolders[i].Folder ?? "";
 
+            config.VMProcedurePrefix = VMProcedurePrefix;
+            config.VMGlobalVarModuleName = VMGlobalVarModuleName;
+            config.VMResultVarName = VMResultVarName;
+            config.VMDefectVarName = VMDefectVarName;
+            config.VMImageModuleName = VMImageModuleName;
+            config.VMRunTimeout = VMRunTimeout;
+
             config.Cameras.Clear();
             foreach (var vm in _cameras)
             {
@@ -131,7 +166,8 @@ namespace WpfApp1.ViewModel
                     IsRotation = vm.IsRotation,
                     UsePhotometricStereo = vm.UsePhotometricStereo,
                     SingleRun = vm.SingleRun,
-                    ExecuteInterval = vm.ExecuteInterval
+                    ExecuteInterval = vm.ExecuteInterval,
+                    VMProcedureName = vm.VMProcedureName
                 });
             }
         }
@@ -177,5 +213,9 @@ namespace WpfApp1.ViewModel
         public int ExecuteInterval { get => _executeInterval; set => SetField(ref _executeInterval, value); }
 
         public string DisplayName => $"Cam{_index + 1}";
+
+        private string _vmProcedureName = "";
+        /// <summary>覆盖该相机对应的VM流程名，留空则用VMProcedurePrefix + (Index+1)</summary>
+        public string VMProcedureName { get => _vmProcedureName; set => SetField(ref _vmProcedureName, value); }
     }
 }

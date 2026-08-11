@@ -1,4 +1,5 @@
 using System;
+using System.Collections.Generic;
 using System.Collections.ObjectModel;
 using System.Windows.Media.Imaging;
 using System.Windows;
@@ -87,7 +88,7 @@ namespace WpfApp1.ViewModel
 
         /// <summary>
         /// 是否为模拟模式（本地图片文件夹）。模拟模式下没有真实VM方案可绑，画面走 DisplayImage；
-        /// 非模拟模式下画面改用 VM 原生渲染控件（见 ShowVmRender / RenderControl）
+        /// 非模拟模式下画面改用 VM 原生渲染控件（见 ShowVmRender / RenderControls）
         /// </summary>
         public bool IsSimulationMode
         {
@@ -102,10 +103,25 @@ namespace WpfApp1.ViewModel
         public bool ShowVmRender => !_isSimulationMode;
 
         /// <summary>
-        /// 该相机格子里 VisionMaster 原生渲染控件（VmRenderControl）的实例引用，
-        /// 由 MainImageShowUserControl 在控件加载完成时写入，供 MainViewModel 绑定 ModuleSource
+        /// 该相机对应的全部 VisionMaster 原生渲染控件（VmRenderControl）实例——
+        /// "主页面"和"实时图像"两个Tab各有一份 MainImageShowUserControl，都绑定同一个相机VM，
+        /// 需要把ModuleSource绑到全部实例上，否则后加载的Tab会把先加载的Tab的绑定挤掉，
+        /// 导致切换过Tab之后先前那个Tab的画面变空白
         /// </summary>
-        public VmRenderControl RenderControl { get; set; }
+        private readonly List<VmRenderControl> _renderControls = new List<VmRenderControl>();
+
+        public void AddRenderControl(VmRenderControl ctrl)
+        {
+            if (ctrl != null && !_renderControls.Contains(ctrl))
+                _renderControls.Add(ctrl);
+        }
+
+        public void RemoveRenderControl(VmRenderControl ctrl)
+        {
+            _renderControls.Remove(ctrl);
+        }
+
+        public IReadOnlyList<VmRenderControl> RenderControls => _renderControls;
 
         public int TotalCount
         {

@@ -47,7 +47,7 @@
                          直接绑定 VM 方案里的图像采集模块，由 VM 自身推流显示，带坐标探针；
                          模拟模式（本地图片文件夹）没有 VM 模块可绑，仍走 Image+DisplayImage -->
                     <Grid Grid.Row="1">
-                        <vmctl:VmRenderControl x:Name="PartVmRender" Loaded="VmRenderControl_Loaded"
+                        <vmctl:VmRenderControl x:Name="PartVmRender" Loaded="VmRenderControl_Loaded" Unloaded="VmRenderControl_Unloaded"
                                                 CoordinateInfoVisible="True"
                                                 Visibility="{Binding ShowVmRender, Converter={StaticResource BoolToVis}}"/>
                         <Image Source="{Binding DisplayImage}" Stretch="Uniform"

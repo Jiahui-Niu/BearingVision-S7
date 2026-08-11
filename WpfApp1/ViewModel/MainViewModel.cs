@@ -1,10 +1,8 @@
 using System;
 using System.Collections.ObjectModel;
-using System.Drawing;
 using System.Drawing.Imaging;
 using System.IO;
 using System.Linq;
-using System.Runtime.InteropServices;
 using System.Threading;
 using System.Windows;
 using System.Windows.Media.Imaging;
@@ -14,7 +12,7 @@ using FinsStcp = HslCommunication.Profinet.Omron.OmronFinsNet;
 using WpfApp1.Model;
 using ICPlatformTools;
 
-// VM SDK — 需安装 VisionMaster 4.4.3
+// VM SDK — 需安装 VisionMaster 4.4.30
 using VM.Core;
 
 namespace WpfApp1.ViewModel
@@ -255,9 +253,6 @@ namespace WpfApp1.ViewModel
         private VmSolution _vmSolution;
         private bool _vmLoaded;
 
-        [DllImport("gdi32.dll")]
-        private static extern bool DeleteObject(IntPtr hObject);
-
         private bool LoadVMSolution(string path)
         {
             IsLoadingSolution = true;
@@ -478,8 +473,9 @@ namespace WpfApp1.ViewModel
         }
 
         /// <summary>
-        /// 方案加载成功后，把每个相机格子的 VmRenderControl 绑定到该相机对应流程的图像采集模块，
-        /// 绑定后画面由 VM 控件自身推流渲染，不再需要每次触发后手动转换 Bitmap
+        /// 方案加载成功后，把每个相机格子的全部 VmRenderControl 实例绑定到该相机对应流程的图像采集模块，
+        /// 绑定后画面由 VM 控件自身推流渲染，不再需要每次触发后手动转换 Bitmap。
+        /// 一个相机可能同时有多个渲染控件实例("主页面"和"实时图像"两个Tab各一份)，需全部绑定
         /// </summary>
         private void BindVMRenderControls()
         {
@@ -487,8 +483,8 @@ namespace WpfApp1.ViewModel
 
             for (int i = 0; i < Cameras.Count; i++)
             {
-                var renderCtrl = Cameras[i].RenderControl;
-                if (renderCtrl == null) continue;
+                var renderCtrls = Cameras[i].RenderControls;
+                if (renderCtrls.Count == 0) continue;
 
                 try
                 {
@@ -507,7 +503,8 @@ namespace WpfApp1.ViewModel
                         continue;
                     }
 
-                    renderCtrl.ModuleSource = imgMod;
+                    foreach (var renderCtrl in renderCtrls)
+                        renderCtrl.ModuleSource = imgMod;
                 }
                 catch (Exception ex)
                 {
@@ -520,54 +517,6 @@ namespace WpfApp1.ViewModel
         /// 从 VM 图像采集模块获取最近一帧图像并转为 BitmapSource（用于 UI 显示）
         /// 若无法获取则返回 null
         /// </summary>
-        private BitmapSource GetVMCameraImage(int camIndex)
-        {
-            if (!_vmLoaded || _vmSolution == null) return null;
-            try
-            {
-                var procName = GetVMProcedureName(camIndex);
-                dynamic proc = _vmSolution[procName];
-                if (proc == null) return null;
-
-                // 模块名称需与 VM 方案中图像采集模块的【名称】一致
-                var imgModName = _config.VMImageModuleName;
-                dynamic imgMod = proc.GetModule(imgModName);
-                if (imgMod == null) return null;
-
-                // VM 4.4.3 SDK：从图像采集模块取输出图像并转换为 Bitmap
-                // GetOutputImage() 返回 VM 内部图像对象，ToBitmap() 转为 GDI+ Bitmap
-                System.Drawing.Bitmap bmp = imgMod.GetOutputImage()?.ToBitmap();
-                if (bmp == null) return null;
-
-                return BitmapToBitmapSource(bmp);
-            }
-            catch (Exception ex)
-            {
-                LogHelper.Log.Error($"获取VM图像失败 Cam{camIndex + 1}", ex);
-                return null;
-            }
-        }
-
-        /// <summary>
-        /// GDI+ Bitmap → WPF BitmapSource 转换（via HBitmap，无需 MemoryStream）
-        /// </summary>
-        private BitmapSource BitmapToBitmapSource(System.Drawing.Bitmap bitmap)
-        {
-            var hBitmap = bitmap.GetHbitmap();
-            try
-            {
-                return System.Windows.Interop.Imaging.CreateBitmapSourceFromHBitmap(
-                    hBitmap, IntPtr.Zero,
-                    System.Windows.Int32Rect.Empty,
-                    BitmapSizeOptions.FromEmptyOptions());
-            }
-            finally
-            {
-                DeleteObject(hBitmap);
-                bitmap.Dispose();
-            }
-        }
-
         #endregion
 
         #region PLC Communication
@@ -757,7 +706,8 @@ namespace WpfApp1.ViewModel
 
             foreach (var c in Cameras)
             {
-                if (c.RenderControl != null) c.RenderControl.ModuleSource = null;
+                foreach (var renderCtrl in c.RenderControls)
+                    renderCtrl.ModuleSource = null;
             }
 
             StopVMSolution();
@@ -819,9 +769,8 @@ namespace WpfApp1.ViewModel
                             WriteShort(camCfg.ResultAddr, isOk ? (short)1 : (short)2);
                             LogHelper.Log.Debug($"[Cam{i + 1}] 已写结果到PLC → {camCfg.ResultAddr} = {(isOk ? 1 : 2)}");
 
-                            BitmapSource displayImg = GetVMCameraImage(i);
-
-                            Cameras[i].SetResult(isOk, displayImg, "", defectInfo);
+                            // 画面已由VmRenderControl直接渲染（见BindVMRenderControls），无需再转Bitmap显示
+                            Cameras[i].SetResult(isOk, null, "", defectInfo);
                             ResultVM.AddResult(isOk);
                             UpdatePLCStats();
 
@@ -967,8 +916,8 @@ namespace WpfApp1.ViewModel
                 Application.Current?.Dispatcher.Invoke(() => Cameras[camIndex].IsDetecting = true);
                 bool isOk = TriggerVMCamera(camIndex, out string defectInfo);
                 LogHelper.Log.Info($"[Cam{camIndex + 1}] 手动触发结果: {(isOk ? "OK" : "NG")} 缺陷:{(string.IsNullOrEmpty(defectInfo) ? "无" : defectInfo)}");
-                BitmapSource img = GetVMCameraImage(camIndex);
-                Cameras[camIndex].SetResult(isOk, img, "", defectInfo);
+                // 画面已由VmRenderControl直接渲染（见BindVMRenderControls），无需再转Bitmap显示
+                Cameras[camIndex].SetResult(isOk, null, "", defectInfo);
                 Application.Current?.Dispatcher.Invoke(() => Cameras[camIndex].IsDetecting = false);
                 _isDetecting = false;
             });

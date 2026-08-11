@@ -61,6 +61,46 @@
                 </StackPanel>
             </GroupBox>
 
+            <!-- VM绑定配置：需与VM方案编辑器中的流程/模块/变量名称保持一致，否则检测触发无法找到对应对象 -->
+            <GroupBox Header="VM绑定配置" Margin="0,4">
+                <StackPanel Margin="2">
+                    <Grid Margin="2">
+                        <Grid.ColumnDefinitions>
+                            <ColumnDefinition Width="90"/>
+                            <ColumnDefinition Width="100"/>
+                            <ColumnDefinition Width="100"/>
+                            <ColumnDefinition Width="120"/>
+                            <ColumnDefinition Width="90"/>
+                            <ColumnDefinition Width="80"/>
+                        </Grid.ColumnDefinitions>
+                        <TextBlock Grid.Column="0" Text="流程名前缀：" VerticalAlignment="Center"/>
+                        <TextBox Grid.Column="1" Text="{Binding VMProcedurePrefix}" Margin="0,0,8,0"/>
+                        <TextBlock Grid.Column="2" Text="全局变量模块：" VerticalAlignment="Center"/>
+                        <TextBox Grid.Column="3" Text="{Binding VMGlobalVarModuleName}" Margin="0,0,8,0"/>
+                        <TextBlock Grid.Column="4" Text="超时(ms)：" VerticalAlignment="Center"/>
+                        <TextBox Grid.Column="5" Text="{Binding VMRunTimeout}"/>
+                    </Grid>
+                    <Grid Margin="2,4,2,2">
+                        <Grid.ColumnDefinitions>
+                            <ColumnDefinition Width="90"/>
+                            <ColumnDefinition Width="100"/>
+                            <ColumnDefinition Width="100"/>
+                            <ColumnDefinition Width="120"/>
+                            <ColumnDefinition Width="90"/>
+                            <ColumnDefinition Width="100"/>
+                        </Grid.ColumnDefinitions>
+                        <TextBlock Grid.Column="0" Text="结果变量名：" VerticalAlignment="Center"/>
+                        <TextBox Grid.Column="1" Text="{Binding VMResultVarName}" Margin="0,0,8,0"/>
+                        <TextBlock Grid.Column="2" Text="缺陷变量名：" VerticalAlignment="Center"/>
+                        <TextBox Grid.Column="3" Text="{Binding VMDefectVarName}" Margin="0,0,8,0"/>
+                        <TextBlock Grid.Column="4" Text="图像模块名：" VerticalAlignment="Center"/>
+                        <TextBox Grid.Column="5" Text="{Binding VMImageModuleName}"/>
+                    </Grid>
+                    <TextBlock Text="以上为全局默认值；下方“拍照延时设置”表格中每路相机可单独填写“VM流程名”覆盖，留空则用前缀+序号"
+                               FontSize="10" Foreground="#88DD88" Margin="2,4,2,0" TextWrapping="Wrap"/>
+                </StackPanel>
+            </GroupBox>
+
             <!-- 存图设置 -->
             <GroupBox Header="存图设置" Margin="0,4">
                 <Grid>
@@ -128,6 +168,7 @@
                         <DataGridTextColumn Header="检测拍照数量" Binding="{Binding TotalShots}" Width="90"/>
                         <DataGridTextColumn Header="拍照间隔(ms)" Binding="{Binding ShotInterval}" Width="90"/>
                         <DataGridTextColumn Header="工位名称" Binding="{Binding StationName}" Width="80"/>
+                        <DataGridTextColumn Header="VM流程名" Binding="{Binding VMProcedureName}" Width="90"/>
                         <DataGridCheckBoxColumn Header="结束标志" Binding="{Binding EndFlag}" Width="60"/>
                         <DataGridCheckBoxColumn Header="旋转工位" Binding="{Binding IsRotation}" Width="60"/>
                         <DataGridCheckBoxColumn Header="单次运行" Binding="{Binding SingleRun}" Width="60"/>
