@@ -196,6 +196,14 @@
       <DependentUpon>MainImageShowUserControl.xaml</DependentUpon>
     </Compile>
 
+    <Page Include="UserControls\ProductionSidebarUserControl.xaml">
+      <Generator>MSBuild:Compile</Generator>
+      <SubType>Designer</SubType>
+    </Page>
+    <Compile Include="UserControls\ProductionSidebarUserControl.xaml.cs">
+      <DependentUpon>ProductionSidebarUserControl.xaml</DependentUpon>
+    </Compile>
+
     <Page Include="UserControls\BrightnessUserControl.xaml">
       <Generator>MSBuild:Compile</Generator>
       <SubType>Designer</SubType>
