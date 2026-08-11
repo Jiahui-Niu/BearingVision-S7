@@ -3,6 +3,7 @@ using System.Collections.ObjectModel;
 using System.Drawing;
 using System.Drawing.Imaging;
 using System.IO;
+using System.Linq;
 using System.Runtime.InteropServices;
 using System.Threading;
 using System.Windows;
@@ -125,7 +126,52 @@ namespace WpfApp1.ViewModel
         public string SolutionPath
         {
             get => _config?.SolutionPath ?? "";
-            set { _config.SolutionPath = value; OnPropertyChanged(); }
+            set
+            {
+                _config.SolutionPath = value;
+                OnPropertyChanged();
+                RefreshSolutionFileList();
+            }
+        }
+
+        /// <summary>方案配置页"方案选择"下拉框：当前方案路径所在目录下的全部.sol文件（仅文件名）</summary>
+        public ObservableCollection<string> SolutionFileList { get; } = new ObservableCollection<string>();
+
+        private string _selectedSolutionFile;
+        public string SelectedSolutionFile
+        {
+            get => _selectedSolutionFile;
+            set
+            {
+                if (SetField(ref _selectedSolutionFile, value) && !string.IsNullOrEmpty(value))
+                {
+                    var dir = GetSolutionDir();
+                    if (!string.IsNullOrEmpty(dir))
+                        SolutionPath = Path.Combine(dir, value);
+                }
+            }
+        }
+
+        private string _newModelNo = "";
+        /// <summary>方案配置页"新型号"输入框：基于当前已加载方案另存为新型号方案时使用</summary>
+        public string NewModelNo
+        {
+            get => _newModelNo;
+            set => SetField(ref _newModelNo, value);
+        }
+
+        private int _loadProgress;
+        public int LoadProgress
+        {
+            get => _loadProgress;
+            set => SetField(ref _loadProgress, value);
+        }
+
+        private bool _isLoadingSolution;
+        public bool IsLoadingSolution
+        {
+            get => _isLoadingSolution;
+            set => SetField(ref _isLoadingSolution, value);
         }
 
         public bool HasEnclosure
@@ -168,6 +214,8 @@ namespace WpfApp1.ViewModel
         public RelayCommand OpenSavePathCommand => new RelayCommand(OpenSavePath);
         public RelayCommand<int> ManualTriggerCommand => new RelayCommand<int>(ManualTrigger);
         public RelayCommand ConfirmBatchCommand => new RelayCommand(ConfirmBatch);
+        public RelayCommand SaveSolutionCommand => new RelayCommand(SaveSolution);
+        public RelayCommand AddNewModelCommand => new RelayCommand(AddNewModel, () => !string.IsNullOrWhiteSpace(NewModelNo));
 
         #endregion
 
@@ -195,6 +243,8 @@ namespace WpfApp1.ViewModel
             EditBatchNo = _config.EditBatchNo;
             CurrentBatchNo = _config.CurrentBatchNo;
 
+            RefreshSolutionFileList();
+
             _sysInfoTimer = new Timer(UpdateSysInfo, null, 1000, 3000);
         }
 
@@ -210,6 +260,8 @@ namespace WpfApp1.ViewModel
 
         private bool LoadVMSolution(string path)
         {
+            IsLoadingSolution = true;
+            LoadProgress = 0;
             try
             {
                 if (!File.Exists(path))
@@ -227,6 +279,7 @@ namespace WpfApp1.ViewModel
                 VmSolution.Load(path, "", true);
                 _vmSolution = VmSolution.Instance;
                 _vmLoaded = true;
+                LoadProgress = 100;
                 LogHelper.Log.Info($"VM方案加载成功: {path}");
                 return true;
             }
@@ -236,12 +289,122 @@ namespace WpfApp1.ViewModel
                 _vmLoaded = false;
                 return false;
             }
+            finally
+            {
+                IsLoadingSolution = false;
+            }
         }
 
         private void StopVMSolution()
         {
             try { _vmSolution?.CloseSolution(); }
             catch (Exception ex) { LogHelper.Log.Error("VM方案停止失败", ex); }
+        }
+
+        /// <summary>方案路径若指向.sol文件返回其所在目录，若本身就是目录则原样返回</summary>
+        private string GetSolutionDir()
+        {
+            try
+            {
+                if (string.IsNullOrWhiteSpace(SolutionPath)) return null;
+                if (Directory.Exists(SolutionPath)) return SolutionPath;
+                return Path.GetDirectoryName(SolutionPath);
+            }
+            catch { return null; }
+        }
+
+        /// <summary>刷新"方案选择"下拉框：扫描方案路径所在目录下的全部.sol文件</summary>
+        private void RefreshSolutionFileList()
+        {
+            SolutionFileList.Clear();
+            var dir = GetSolutionDir();
+            if (string.IsNullOrEmpty(dir) || !Directory.Exists(dir)) return;
+
+            try
+            {
+                foreach (var f in Directory.GetFiles(dir, "*.sol").OrderBy(f => f))
+                    SolutionFileList.Add(Path.GetFileName(f));
+
+                if (!string.IsNullOrEmpty(SolutionPath))
+                {
+                    var curName = Path.GetFileName(SolutionPath);
+                    if (SolutionFileList.Contains(curName))
+                    {
+                        _selectedSolutionFile = curName;
+                        OnPropertyChanged(nameof(SelectedSolutionFile));
+                    }
+                }
+            }
+            catch (Exception ex)
+            {
+                LogHelper.Log.Warn($"刷新方案文件列表失败: {ex.Message}");
+            }
+        }
+
+        /// <summary>方案配置页"保存方案"按钮：保存当前在VM工作台中打开的方案</summary>
+        private void SaveSolution()
+        {
+            try
+            {
+                string err = VmSolution.Save();
+                if (string.IsNullOrEmpty(err))
+                {
+                    StatusText = "方案已保存";
+                    LogHelper.Log.Info($"VM方案保存成功: {SolutionPath}");
+                }
+                else
+                {
+                    StatusText = "方案保存失败";
+                    LogHelper.Log.Error($"VM方案保存失败: {err}");
+                    MessageBox.Show("方案保存失败: " + err, "提示");
+                }
+            }
+            catch (Exception ex)
+            {
+                LogHelper.Log.Error("VM方案保存异常", ex);
+                StatusText = "方案保存异常";
+                MessageBox.Show("保存失败，请确认已在VM操作台中打开方案: " + ex.Message, "提示");
+            }
+        }
+
+        /// <summary>
+        /// 方案配置页"新增"按钮：以当前已加载方案为模板，另存为一个以新型号命名的.sol文件
+        /// </summary>
+        private void AddNewModel()
+        {
+            if (string.IsNullOrWhiteSpace(NewModelNo)) return;
+
+            var dir = GetSolutionDir();
+            if (string.IsNullOrEmpty(dir))
+            {
+                MessageBox.Show("请先设置方案路径所在目录", "提示");
+                return;
+            }
+
+            var newPath = Path.Combine(dir, NewModelNo + ".sol");
+            try
+            {
+                string err = VmSolution.SaveAs(newPath, "");
+                if (string.IsNullOrEmpty(err))
+                {
+                    LogHelper.Log.Info($"新型号方案已创建: {newPath} (基于 {SolutionPath} 另存为)");
+                    ModelNo = NewModelNo;
+                    SolutionPath = newPath;
+                    SelectedSolutionFile = Path.GetFileName(newPath);
+                    StatusText = $"新型号[{ModelNo}]方案已创建";
+                    NewModelNo = "";
+                }
+                else
+                {
+                    LogHelper.Log.Error($"新型号方案创建失败: {err}");
+                    MessageBox.Show("新增型号失败: " + err, "提示");
+                }
+            }
+            catch (Exception ex)
+            {
+                LogHelper.Log.Error("新增型号异常", ex);
+                MessageBox.Show("新增型号失败，请确认已在VM操作台中打开一个方案作为模板: " + ex.Message, "提示");
+            }
         }
 
         /// <summary>

@@ -23,6 +23,7 @@ namespace WpfApp1
     partial class MainWindow
     {
         internal TabControl mainTab;
+        internal VMControls.WPF.Release.VmFrontendControl VmFrontend;
         private bool _contentLoaded;
 
         public void InitializeComponent()

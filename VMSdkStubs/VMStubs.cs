@@ -59,6 +59,8 @@ namespace VM.Core
         private static readonly VmSolution _instance = new VmSolution();
         public static VmSolution Instance => _instance;
         public static void Load(string path, string password, bool autoRun) { }
+        public static string Save() => "";
+        public static string SaveAs(string path, string password) => "";
         public void CloseSolution() { }
         public VmIndependentProcedure GetProcedure(string procedureName) => null;
         public VmIndependentProcedure this[string name] => null;
@@ -107,5 +109,14 @@ namespace VMControls.WPF.Release
     {
         public object ModuleSource { get; set; }
         public bool CoordinateInfoVisible { get; set; }
+    }
+
+    /// <summary>
+    /// VM原生"整体工作台"控件桩：真实控件内嵌流程编辑区/工具箱/图像与模块结果/历史结果，
+    /// LoadSol加载后由VM自身渲染，本项目代码只需要调用LoadSol这一个方法
+    /// </summary>
+    public class VmFrontendControl
+    {
+        public void LoadSol(string strPath, string strPassword) { }
     }
 }

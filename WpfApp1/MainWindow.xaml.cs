@@ -1,3 +1,5 @@
+using System;
+using System.IO;
 using System.Windows;
 using WpfApp1.ViewModel;
 
@@ -14,6 +16,25 @@ namespace WpfApp1
             _vm.CurrentUserRole = role;
             _vm.CurrentUserName = userName;
             DataContext = _vm;
+
+            _vm.PropertyChanged += (s, e) =>
+            {
+                if (e.PropertyName == nameof(MainViewModel.SolutionPath))
+                    LoadFrontendSolution();
+            };
+            LoadFrontendSolution();
+        }
+
+        /// <summary>
+        /// 把当前方案路径加载进方案配置页的VM原生工作台(VmFrontendControl)，供查看/编辑；
+        /// 与"开始检测"时后台加载的运行态方案(MainViewModel.LoadVMSolution)相互独立
+        /// </summary>
+        private void LoadFrontendSolution()
+        {
+            var path = _vm.SolutionPath;
+            if (string.IsNullOrEmpty(path) || !File.Exists(path)) return;
+            try { VmFrontend.LoadSol(path, ""); }
+            catch (Exception ex) { MessageBox.Show("加载方案到VM工作台失败: " + ex.Message, "提示"); }
         }
 
         private void Window_Closing(object sender, System.ComponentModel.CancelEventArgs e)
