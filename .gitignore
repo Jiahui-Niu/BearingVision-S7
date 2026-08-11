@@ -18,6 +18,10 @@ PhotometricStereo/bin/
 PhotometricStereo/obj/
 Bin/
 
+# 例外：WpfApp1/bin/x64/Debug/HslCommunication.dll 用 `git add -f` 强制纳入了git追踪
+# （WpfApp1.csproj的HintPath依赖此固定路径，多次因bin目录被清理/重建而丢失导致CS0246）
+# 上面的忽略规则对已追踪文件不生效，故此处无需/无法用!规则单独取消忽略
+
 # 运行时产生的文件
 AppData.dat
 *.dmp
