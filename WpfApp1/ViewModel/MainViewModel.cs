@@ -128,9 +128,13 @@ namespace WpfApp1.ViewModel
             {
                 _config.SolutionPath = value;
                 OnPropertyChanged();
+                OnPropertyChanged(nameof(ShowSolutionPlaceholder));
                 RefreshSolutionFileList();
             }
         }
+
+        /// <summary>方案配置页：尚未设置方案路径时，VM工作台区域显示占位说明</summary>
+        public bool ShowSolutionPlaceholder => string.IsNullOrWhiteSpace(SolutionPath);
 
         /// <summary>方案配置页"方案选择"下拉框：当前方案路径所在目录下的全部.sol文件（仅文件名）</summary>
         public ObservableCollection<string> SolutionFileList { get; } = new ObservableCollection<string>();

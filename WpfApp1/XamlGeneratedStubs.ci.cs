@@ -91,6 +91,17 @@ namespace WpfApp1.UserControls
             _contentLoaded = true;
         }
     }
+
+    partial class ProductionSidebarUserControl
+    {
+        private bool _contentLoaded;
+
+        public void InitializeComponent()
+        {
+            if (_contentLoaded) return;
+            _contentLoaded = true;
+        }
+    }
 }
 
 namespace WpfApp1.View
