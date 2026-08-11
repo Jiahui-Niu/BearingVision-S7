@@ -57,6 +57,10 @@ namespace WpfApp1
         {
             ICPlatformTools.LogHelper.Log.Info($"程序正常退出，ExitCode={e.ApplicationExitCode}");
             base.OnExit(e);
+
+            // 兜底：VM SDK内部可能持有未完全释放的原生资源/线程，导致所有窗口关闭后进程仍不退出，
+            // 残留占用bin目录下的DLL文件句柄。这里强制结束进程，确保不会留下后台残留
+            Environment.Exit(e.ApplicationExitCode);
         }
     }
 }

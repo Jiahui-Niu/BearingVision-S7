@@ -118,5 +118,6 @@ namespace VMControls.WPF.Release
     public class VmFrontendControl
     {
         public void LoadSol(string strPath, string strPassword) { }
+        public void Dispose() { }
     }
 }

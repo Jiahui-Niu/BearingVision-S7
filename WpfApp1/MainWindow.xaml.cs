@@ -48,6 +48,11 @@ namespace WpfApp1
                 if (r != MessageBoxResult.Yes) { e.Cancel = true; return; }
             }
             _vm.Cleanup();
+
+            // VmFrontendControl(方案配置页的VM工作台)独立于MainViewModel的运行态方案加载，
+            // 哪怕从未点击"开始"、只在方案配置页导入过方案预览，也会占用VM SDK原生资源/文件句柄，
+            // 必须显式释放，否则进程退出后WpfSurface.exe仍残留、锁住bin目录下的DLL导致下次生成报"占用"
+            try { VmFrontend?.Dispose(); } catch { }
         }
 
         private void MenuSelectSolution_Click(object sender, RoutedEventArgs e) => _vm.SelectSolutionPath();
